@@ -1,0 +1,62 @@
+<template>
+  <div class="h-full">
+    <!-- Loading state -->
+    <div v-if="isLoading" class="flex items-center justify-center h-full bg-gray-900">
+      <div class="text-center text-white">
+        <div class="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4" />
+        <p class="text-white/70">Loading viewer…</p>
+      </div>
+    </div>
+
+    <div v-else-if="loadError" class="flex items-center justify-center h-full bg-gray-900 text-white text-center">
+      <div>
+        <p class="text-xl font-semibold mb-2">Failed to open note</p>
+        <p class="text-white/50 text-sm mb-6">{{ loadError }}</p>
+        <RouterLink to="/notes" class="text-primary-300 hover:underline text-sm">← Back to Notes</RouterLink>
+      </div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <PdfViewer
+      v-else-if="streamUrl"
+      :note-id="noteId"
+      :stream-url="streamUrl"
+      :student-email="authStore.user?.email || ''"
+      :watermark-opacity="settingsStore.get('watermark_opacity', 0.15)"
+      :watermark-template="settingsStore.get('watermark_text_template', '{email} | {date}')"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter }  from 'vue-router'
+import { notesApi }             from '../../api/student/notes'
+import { useAuthStore }         from '../../stores/auth'
+import { useSettingsStore }     from '../../stores/settings'
+import PdfViewer from '../../components/pdf/PdfViewer.vue'
+
+const route         = useRoute()
+const router        = useRouter()
+const authStore     = useAuthStore()
+const settingsStore = useSettingsStore()
+
+const isLoading  = ref(true)
+const loadError  = ref('')
+const streamUrl  = ref('')
+const noteId     = computed(() => parseInt(route.params.id))
+
+onMounted(async () => {
+  try {
+    const res = await notesApi.streamToken(noteId.value)
+    streamUrl.value = res.data.data.stream_url
+
+    // Log opened
+    await notesApi.logAccess(noteId.value, { action: 'opened' })
+  } catch (err) {
+    loadError.value = err.response?.data?.message || 'Could not open this note.'
+  } finally {
+    isLoading.value = false
+  }
+})
+</script>
