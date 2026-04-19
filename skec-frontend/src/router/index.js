@@ -4,6 +4,15 @@ import { setupGuards } from './guards'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+
+    // ── Public ─────────────────────────────────────────────────
+    {
+      path: '/',
+      name: 'landing',
+      component: () => import('../views/public/LandingView.vue'),
+      meta: { layout: 'PublicLayout', requiresAuth: false },
+    },
+    
     // ── Public / Auth ──────────────────────────────────────────
     {
       path: '/login',

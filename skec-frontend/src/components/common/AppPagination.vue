@@ -1,36 +1,41 @@
 <template>
-  <div v-if="meta && meta.last_page > 1" class="flex items-center justify-between px-1 py-4">
-    <p class="text-sm text-gray-500">
-      Showing <span class="font-medium">{{ meta.from }}</span>–<span class="font-medium">{{ meta.to }}</span>
+  <div v-if="meta && meta.last_page > 1" class="flex items-center justify-between px-1 py-4 flex-wrap gap-3">
+    <!-- Count info -->
+    <p class="text-xs sm:text-sm text-gray-500">
+      <span class="font-medium">{{ meta.from }}–{{ meta.to }}</span>
       of <span class="font-medium">{{ meta.total }}</span>
     </p>
+
+    <!-- Controls -->
     <div class="flex items-center gap-1">
       <button
         :disabled="meta.current_page === 1"
         @click="$emit('change', meta.current_page - 1)"
-        class="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        class="px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
       >
-        ← Prev
+        ←
       </button>
+
       <template v-for="page in visiblePages" :key="page">
         <button
           v-if="page !== '…'"
           @click="$emit('change', page)"
           :class="[
-            'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+            'px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium border transition min-w-[2rem] text-center',
             page === meta.current_page
               ? 'bg-primary-700 text-white border-primary-700'
               : 'border-gray-200 hover:bg-gray-50',
           ]"
         >{{ page }}</button>
-        <span v-else class="px-2 text-gray-400">…</span>
+        <span v-else class="px-1 text-gray-400 text-sm">…</span>
       </template>
+
       <button
         :disabled="meta.current_page === meta.last_page"
         @click="$emit('change', meta.current_page + 1)"
-        class="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        class="px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
       >
-        Next →
+        →
       </button>
     </div>
   </div>
