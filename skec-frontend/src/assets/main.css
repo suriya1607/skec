@@ -1,35 +1,138 @@
-@import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
   }
-}
 
-@media (min-width: 1024px) {
   body {
-    display: flex;
-    place-items: center;
+    @apply bg-gray-50 text-gray-900;
+    overflow-x: hidden;
   }
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+  * {
+    @apply border-gray-200;
   }
+
+  /* Prevent iOS font size adjustment */
+  input, select, textarea {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+  }
+
+  @media (min-width: 640px) {
+    input, select, textarea {
+      font-size: 0.875rem !important;
+    }
+  }
+
+  /* Prevent pull-to-refresh interference in PDF viewer */
+  #pdf-viewer-container {
+    overscroll-behavior: none;
+    touch-action: pan-x pan-y;
+  }
+}
+
+@layer components {
+  /* Card */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6;
+  }
+
+  /* Input base (used in textarea etc.) */
+  .input-base {
+    @apply w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500
+           disabled:bg-gray-100 disabled:cursor-not-allowed transition;
+  }
+
+  /* Badge variants */
+  .badge-published { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800; }
+  .badge-draft     { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
+  .badge-active    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800; }
+  .badge-inactive  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800; }
+  .badge-pending   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
+  .badge-expired   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600; }
+  .badge-used      { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800; }
+
+  /* Stats card */
+  .stats-card {
+    @apply bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow;
+  }
+
+  /* Sidebar link */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+           text-gray-600 hover:bg-primary-50 hover:text-primary-700 transition-all;
+  }
+  .sidebar-link.active {
+    @apply bg-primary-50 text-primary-700 font-semibold;
+  }
+
+  /* Table header */
+  .table-th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider;
+  }
+  .table-td {
+    @apply px-4 py-3 text-sm text-gray-700;
+  }
+  .table-row {
+    @apply border-b border-gray-50 hover:bg-gray-50/50 transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-brand { color: #1A3C6E; }
+  .bg-brand   { background-color: #1A3C6E; }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* PDF viewer security */
+  .pdf-container {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  }
+
+  /* Touch-friendly tap target */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    @apply flex items-center justify-center;
+  }
+
+  /* Safe area for notched phones */
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+
+  /* Line clamp */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Print: hide PDF viewer */
+@media print {
+  #pdf-viewer-container { display: none !important; }
 }
