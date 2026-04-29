@@ -13,7 +13,7 @@ class MediaController extends Controller
 {
     use ApiResponse;
 
-    /**
+    /** 
      * Upload a single image (logo, hero image, etc.)
      * Returns public URL stored under storage/app/public/media/
      */
