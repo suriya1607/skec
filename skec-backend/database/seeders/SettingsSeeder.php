@@ -34,6 +34,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'enable_access_logs',      'value' => 'true',            'type' => 'boolean', 'group' => 'security', 'is_public' => false, 'description' => 'Enable PDF access logging'],
 
             // ── Landing — Hero ────────────────────────────────────────────────
+            ['key' => 'hero_image', 'value' => null, 'type' => 'string', 'group' => 'landing', 'is_public' => true],
             ['key' => 'hero_badge',         'value' => 'Admissions Open — Batch 2025',     'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'Badge text in hero section'],
             ['key' => 'hero_title',         'value' => 'Shaping Futures Through',           'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'Hero main title (line 1)'],
             ['key' => 'hero_subtitle',      'value' => 'Excellence in Education',           'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'Hero subtitle (line 2, highlighted colour)'],
@@ -42,6 +43,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'hero_cta_secondary', 'value' => 'Learn More',                        'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'Secondary CTA button label in hero'],
 
             // ── Landing — Slider ──────────────────────────────────────────────
+            ['key' => 'rank_title', 'value' => 'Top Rank Holders', 'type' => 'string', 'group' => 'landing', 'is_public' => true],
             ['key' => 'slider_images',      'value' => '[]',   'type' => 'string',  'group' => 'landing', 'is_public' => true, 'description' => 'Slider images JSON [{url,caption,subcaption}]. Manage in Media tab.'],
             ['key' => 'slider_autoplay',    'value' => 'true', 'type' => 'boolean', 'group' => 'landing', 'is_public' => true, 'description' => 'Auto-play hero image slider'],
             ['key' => 'slider_interval',    'value' => '5000', 'type' => 'integer', 'group' => 'landing', 'is_public' => true, 'description' => 'Slider auto-play interval (ms)'],
@@ -55,7 +57,7 @@ class SettingsSeeder extends Seeder
             // ── Landing — About ───────────────────────────────────────────────
             ['key' => 'about_title',        'value' => 'A Legacy of Academic Excellence',   'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'About section heading'],
             ['key' => 'about_description',  'value' => 'Sri Kumaran Education Centre has been a beacon of quality education, empowering students with knowledge, skills, and values needed to thrive in the modern world.', 'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'About section description paragraph'],
-            ['key' => 'about_image',        'value' => null,   'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'About section image URL (upload via Media)'],
+            // ['key' => 'about_image',        'value' => null,   'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'About section image URL (upload via Media)'],
             ['key' => 'about_points',       'value' => 'Expert faculty with years of teaching experience|Personalised attention for every student|Digital learning materials and resources|Regular assessments and performance tracking', 'type' => 'string', 'group' => 'landing', 'is_public' => true, 'description' => 'About bullet points separated by pipe |'],
 
             // ── Landing — Current Batch ───────────────────────────────────────

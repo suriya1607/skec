@@ -171,7 +171,7 @@ import AppImageUpload from '../../components/common/AppImageUpload.vue'
 import SliderManager  from '../../components/common/SliderManager.vue'
 
 // ── Field type detection ────────────────────────────────────────────────
-const IMAGE_FIELDS     = ['app_logo', 'app_favicon', 'about_image']
+const IMAGE_FIELDS     = ['app_logo', 'app_favicon', 'hero_image']
 const SLIDER_FIELDS    = ['slider_images', 'gallery_images']
 const JSON_FIELDS      = ['batch_items','openings_items','achievements_items','testimonials_items']
 const PIPE_FIELDS      = ['about_points']

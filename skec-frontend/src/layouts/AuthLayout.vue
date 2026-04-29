@@ -14,8 +14,14 @@
     <div class="w-full max-w-md relative z-10">
       <!-- Logo / Brand -->
       <div class="text-center mb-6 sm:mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl shadow-xl mb-3 sm:mb-4">
-          <span class="text-primary-700 font-extrabold text-xl sm:text-2xl">SK</span>
+        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl shadow-xl mb-3 sm:mb-4 overflow-hidden">
+          <img
+            v-if="settingsStore.get('app_logo')"
+            :src="settingsStore.get('app_logo')"
+            :alt="settingsStore.get('app_name', 'SKEC')"
+            class="w-full h-full object-contain p-1.5"
+          />
+          <span v-else class="text-primary-700 font-extrabold text-xl sm:text-2xl">SK</span>
         </div>
         <h1 class="text-white text-xl sm:text-2xl font-bold tracking-tight">
           {{ settingsStore.get('app_name', 'Sri Kumaran Education Centre') }}

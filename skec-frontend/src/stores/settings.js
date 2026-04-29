@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { settingsApi } from '../api/settings'
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -9,6 +9,30 @@ export const useSettingsStore = defineStore('settings', () => {
   function get(key, defaultValue = null) {
     return settings.value[key] ?? defaultValue
   }
+
+  /** Dynamically update browser favicon and page title from settings */
+  function applyBrowserMeta() {
+    // Favicon — prefer app_favicon, fall back to app_logo
+    const faviconUrl = settings.value.app_favicon || settings.value.app_logo
+    if (faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']")
+      if (!link) {
+        link = document.createElement('link')
+        link.rel = 'icon'
+        document.head.appendChild(link)
+      }
+      link.href = faviconUrl
+    }
+
+    // Page title
+    const appName = settings.value.app_name
+    if (appName) {
+      document.title = appName
+    }
+  }
+
+  // Watch for changes and apply
+  watch(settings, applyBrowserMeta, { deep: true })
 
   async function fetchPublicSettings() {
     try {

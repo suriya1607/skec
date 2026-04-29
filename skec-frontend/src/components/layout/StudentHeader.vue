@@ -4,8 +4,14 @@
       <div class="flex items-center justify-between h-16">
         <!-- Brand -->
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-primary-900 rounded-xl flex items-center justify-center">
-            <span class="text-white font-bold text-sm">SK</span>
+          <div class="w-9 h-9  rounded-xl flex items-center justify-center overflow-hidden">
+            <img
+              v-if="settingsStore.get('app_logo')"
+              :src="settingsStore.get('app_logo')"
+              :alt="settingsStore.get('app_name', 'SKEC')"
+              class="w-full h-full object-contain p-0.5"
+            />
+            <span v-else class="text-white font-bold text-sm">SK</span>
           </div>
           <span class="font-bold text-primary-900 hidden sm:block">
             {{ settingsStore.get('app_name', 'SKEC') }}
