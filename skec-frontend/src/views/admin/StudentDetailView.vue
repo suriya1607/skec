@@ -12,7 +12,13 @@
     <div v-else-if="student" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Profile card -->
       <div class="card text-center">
-        <div class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+        <img
+          v-if="student.photo_url"
+          :src="student.photo_url"
+          :alt="student.name"
+          class="w-20 h-20 rounded-full object-cover border border-gray-200 mx-auto mb-3"
+        />
+        <div v-else class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
           <span class="text-primary-700 font-bold text-xl">{{ getInitials(student.name) }}</span>
         </div>
         <h2 class="font-bold text-gray-900 text-lg">{{ student.name }}</h2>
@@ -20,6 +26,15 @@
         <AppBadge :variant="student.status" :label="student.status" dot class="mt-3" />
 
         <div class="mt-5 space-y-2">
+          <AppButton
+            variant="secondary"
+            size="sm"
+            class="w-full"
+            :disabled="!student.photo_url"
+            @click="downloadPhoto"
+          >
+            Download Photo
+          </AppButton>
           <AppButton
             :variant="student.status === 'active' ? 'danger' : 'success'"
             size="sm"
@@ -37,11 +52,26 @@
       <!-- Stats + logs -->
       <div class="lg:col-span-2 space-y-6">
         <div class="card">
+          <h3 class="font-semibold text-gray-800 mb-4">Admission Details</h3>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div><dt class="text-gray-400">Registration No.</dt><dd class="font-medium mt-0.5">{{ profile?.reg_no || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Father's Name</dt><dd class="font-medium mt-0.5">{{ profile?.father_name || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Date of Birth</dt><dd class="font-medium mt-0.5">{{ formatDate(profile?.dob) }}</dd></div>
+            <div><dt class="text-gray-400">Gender</dt><dd class="font-medium mt-0.5 capitalize">{{ profile?.gender || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Community Category</dt><dd class="font-medium mt-0.5">{{ profile?.community_category || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Contact Phone</dt><dd class="font-medium mt-0.5">{{ profile?.contact_phone || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Qualification</dt><dd class="font-medium mt-0.5">{{ profile?.qualification || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Course</dt><dd class="font-medium mt-0.5">{{ profile?.course?.name || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Medium</dt><dd class="font-medium mt-0.5 capitalize">{{ profile?.medium_of_studying || '—' }}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-gray-400">Address</dt><dd class="font-medium mt-0.5">{{ profile?.address || '—' }}</dd></div>
+          </dl>
+        </div>
+
+        <div class="card">
           <h3 class="font-semibold text-gray-800 mb-4">Activity Info</h3>
-          <dl class="grid grid-cols-2 gap-4 text-sm">
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div><dt class="text-gray-400">Joined</dt><dd class="font-medium mt-0.5">{{ formatDate(student.created_at) }}</dd></div>
             <div><dt class="text-gray-400">Last Login</dt><dd class="font-medium mt-0.5">{{ formatDate(student.last_login_at) }}</dd></div>
-            <div><dt class="text-gray-400">Active Sessions</dt><dd class="font-medium mt-0.5">{{ activeSessions }}</dd></div>
             <div><dt class="text-gray-400">Last IP</dt><dd class="font-medium mt-0.5">{{ student.last_login_ip || '—' }}</dd></div>
           </dl>
         </div>
@@ -62,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { adminStudentsApi } from '../../api/admin/students'
 import { formatDate, getInitials } from '../../utils/helpers'
@@ -74,12 +104,11 @@ import AppButton from '../../components/common/AppButton.vue'
 const route   = useRoute()
 const loading = ref(true)
 const student = ref(null)
-const activeSessions = ref(0)
+const profile = computed(() => student.value?.profile || null)
 
 onMounted(async () => {
   const res = await adminStudentsApi.get(route.params.id)
   student.value       = res.data.data.student
-  activeSessions.value = res.data.data.active_sessions
   loading.value = false
 })
 
@@ -89,8 +118,20 @@ async function toggleStatus() {
   student.value.status = newStatus
 }
 
+async function downloadPhoto() {
+  if (!student.value?.photo_url) return
+  const res = await adminStudentsApi.downloadPhoto(student.value.id)
+  const url = URL.createObjectURL(res.data)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${student.value.name || 'student'}-photo`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
 async function forceLogout() {
   await adminStudentsApi.forceLogout(student.value.id)
-  activeSessions.value = 0
 }
 </script>

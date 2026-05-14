@@ -7,6 +7,7 @@ use App\Exceptions\InvitationNotFoundException;
 use App\Exceptions\InvitationUsedException;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterFromInviteRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use App\Services\InvitationService;
 use App\Services\SessionService;
@@ -15,6 +16,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -93,15 +95,34 @@ class AuthController extends Controller
             return $this->notFound($e->getMessage());
         }
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $invitation->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'student',
-            'status'   => 'active',
-        ]);
+        $user = DB::transaction(function () use ($request, $invitation) {
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $invitation->email,
+                'password' => Hash::make($request->password),
+                'role'     => 'student',
+                'status'   => 'active',
+            ]);
 
-        $this->invitationService->markUsed($invitation, $user);
+            $user->profile()->create($request->safe()->only([
+                'reg_no',
+                'father_name',
+                'dob',
+                'gender',
+                'address',
+                'community_category',
+                'contact_phone',
+                'qualification',
+                'course_id',
+                'medium_of_studying',
+            ]));
+
+            $user->addMediaFromRequest('photo')->toMediaCollection('student_photo');
+
+            $this->invitationService->markUsed($invitation, $user);
+
+            return $user;
+        });
 
         // Auto-login
         $this->sessionService->terminateOldestIfExceeded($user);
@@ -114,7 +135,7 @@ class AuthController extends Controller
         ]);
 
         return $this->created([
-            'user'          => $user,
+            'user'          => $user->load('profile.course'),
             'token'         => $sanctumToken,
             'session_token' => $rawSessionToken,
             'expires_at'    => now()->addMinutes(60)->toIso8601String(),
@@ -137,12 +158,49 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user     = $request->user()->load([]);
+        $user     = $request->user()->load('profile.course');
         $sessions = $this->sessionService->getActiveSessions($user);
 
         return $this->success([
             'user'            => $user,
             'active_sessions' => $sessions->count(),
         ]);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $user->name = $request->name;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            $request->safe()->only([
+                'reg_no',
+                'father_name',
+                'dob',
+                'gender',
+                'address',
+                'community_category',
+                'contact_phone',
+                'qualification',
+                'course_id',
+                'medium_of_studying',
+            ])
+        );
+
+        if ($request->hasFile('photo')) {
+            $user->addMediaFromRequest('photo')->toMediaCollection('student_photo');
+        }
+
+        return $this->success([
+            'user' => $user->refresh()->load('profile.course'),
+        ], 'Profile updated');
     }
 }

@@ -28,21 +28,20 @@ Route::prefix('v1')->group(function () {
 
     // Public settings & landing data
     Route::get('/settings/public', [SettingsController::class, 'public']);
+    Route::get('/categories',       [CategoryController::class, 'indexPublic']);
 
     // ─── AUTHENTICATED ROUTES ───────────────────────────────────────────────
     Route::middleware(['auth:sanctum', EnsureValidSession::class, EnsureUserActive::class])->group(function () {
 
         // Auth
-        Route::post('/auth/logout', [AuthController::class, 'logout']);
-        Route::get('/auth/me',      [AuthController::class, 'me']);
+        Route::post('/auth/logout',  [AuthController::class, 'logout']);
+        Route::get('/auth/me',       [AuthController::class, 'me']);
+        Route::post('/auth/profile',  [AuthController::class, 'updateProfile']);
 
         // Notes (student)
         Route::get('/notes',                   [NoteController::class, 'index']);
         Route::get('/notes/{id}/stream-token', [NoteController::class, 'getStreamToken']);
         Route::post('/notes/{id}/log',         [NoteController::class, 'logAccess']);
-
-        // Categories (public-facing)
-        Route::get('/categories', [CategoryController::class, 'indexPublic']);
 
         // ─── ADMIN ROUTES ──────────────────────────────────────────────────
         Route::middleware(EnsureAdmin::class)->prefix('admin')->group(function () {
@@ -53,6 +52,7 @@ Route::prefix('v1')->group(function () {
             // Students
             Route::get('/students',               [AdminStudentController::class, 'index']);
             Route::get('/students/{id}',          [AdminStudentController::class, 'show']);
+            Route::get('/students/{id}/photo',    [AdminStudentController::class, 'downloadPhoto']);
             Route::patch('/students/{id}',        [AdminStudentController::class, 'update']);
             Route::delete('/students/{id}',       [AdminStudentController::class, 'destroy']);
             Route::post('/students/{id}/logout',  [AdminStudentController::class, 'forceLogout']);

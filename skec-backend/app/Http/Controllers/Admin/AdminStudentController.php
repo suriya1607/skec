@@ -9,6 +9,7 @@ use App\Services\SessionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AdminStudentController extends Controller
 {
@@ -20,7 +21,7 @@ class AdminStudentController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = User::students();
+        $query = User::students()->with('profile.course');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -39,7 +40,10 @@ class AdminStudentController extends Controller
     public function show(int $id): JsonResponse
     {
         $student = User::students()
-            ->with(['accessLogs' => fn($q) => $q->orderBy('created_at', 'desc')->limit(20)])
+            ->with([
+                'profile.course',
+                'accessLogs' => fn($q) => $q->orderBy('created_at', 'desc')->limit(20),
+            ])
             ->findOrFail($id);
 
         $activeSessions = $this->sessionService->getActiveSessions($student);
@@ -48,6 +52,21 @@ class AdminStudentController extends Controller
             'student' => $student,
             'active_sessions' => $activeSessions,
         ]);
+    }
+
+    public function downloadPhoto(int $id): BinaryFileResponse|JsonResponse
+    {
+        $student = User::students()->findOrFail($id);
+        $media = $student->getFirstMedia('student_photo');
+
+        if (!$media) {
+            return $this->notFound('Student photo not found.');
+        }
+
+        return response()->download(
+            $media->getPath(),
+            "{$student->name}-photo.{$media->extension}"
+        );
     }
 
     public function update(UpdateStudentRequest $request, int $id): JsonResponse

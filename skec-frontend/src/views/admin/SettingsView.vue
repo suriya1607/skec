@@ -167,7 +167,7 @@ import AppInput       from '../../components/common/AppInput.vue'
 import AppButton      from '../../components/common/AppButton.vue'
 import AppAlert       from '../../components/common/AppAlert.vue'
 import AppLoader      from '../../components/common/AppLoader.vue'
-import AppImageUpload from '../../components/common/AppImageUpload.vue'
+import AppImageUpload from '../../components/common/Appimageupload.vue'
 import SliderManager  from '../../components/common/SliderManager.vue'
 
 // ── Field type detection ────────────────────────────────────────────────

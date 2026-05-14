@@ -95,7 +95,7 @@ class NoteController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'action' => ['required', 'in:opened,closed,page_changed'],
+            'action' => ['required', 'in:opened,closed,page_changed,screenshot_attempt,capture_attempt,print_attempt,copy_attempt'],
             'page_number' => ['nullable', 'integer'],
             'duration_seconds' => ['nullable', 'integer'],
         ]);

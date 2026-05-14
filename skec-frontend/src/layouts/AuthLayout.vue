@@ -1,6 +1,9 @@
 <template>
   <div
-    class="min-h-[100dvh] bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500 flex items-center justify-center p-4 relative overflow-hidden"
+    :class="[
+      'min-h-[100dvh] bg-gradient-to-br from-primary-900 via-primary-700 to-primary-500 flex justify-center p-4 relative overflow-hidden',
+      isRegister ? 'items-start sm:py-6' : 'items-center',
+    ]"
   >
     <!-- Background pattern -->
     <div
@@ -11,7 +14,7 @@
     <div class="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
     <div class="absolute bottom-0 left-0 w-72 h-72 bg-primary-300/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-    <div class="w-full max-w-md relative z-10">
+    <div :class="['w-full relative z-10', isRegister ? 'max-w-4xl' : 'max-w-md']">
       <!-- Logo / Brand -->
       <div class="text-center mb-6 sm:mb-8">
         <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl shadow-xl mb-3 sm:mb-4 overflow-hidden">
@@ -32,7 +35,7 @@
       </div>
 
       <!-- Card -->
-      <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
+      <div :class="['bg-white rounded-2xl shadow-2xl p-6 sm:p-8', isRegister ? 'lg:p-8' : '']">
         <RouterView />
       </div>
 
@@ -44,6 +47,11 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSettingsStore } from '../stores/settings'
+
+const route = useRoute()
 const settingsStore = useSettingsStore()
+const isRegister = computed(() => route.name === 'register')
 </script>
