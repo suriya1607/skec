@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Response;
 
 class AdminNoteController extends Controller
 {
@@ -132,5 +133,19 @@ class AdminNoteController extends Controller
         ]);
 
         return $this->success($note, "Note status changed to {$status}");
+    }
+    public function view($id)
+    {
+        $note = Note::findOrFail($id);
+
+        $path = storage_path('app/private/' . $note->file_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'File not found');
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 }

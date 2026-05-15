@@ -16,7 +16,13 @@
 
     <AppTable :columns="columns" :rows="notes" :loading="loading">
       <template #cell-title="{ row }">
-        <span class="font-medium text-gray-800">{{ row.title }}</span>
+        <a
+    :href="row.file_url"
+    target="_blank"
+    class="font-medium text-blue-600 hover:underline"
+  >
+    {{ row.title }}
+  </a>
       </template>
       <template #cell-category="{ row }">
         <span v-if="row.category" class="inline-flex items-center gap-1.5">

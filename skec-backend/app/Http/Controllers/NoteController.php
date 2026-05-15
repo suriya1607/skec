@@ -22,7 +22,12 @@ class NoteController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+
+        $isstudent = auth()->user();
+        $student_course_id = $isstudent->profile->course_id;
+
         $query = Note::with('category', 'uploader')
+            ->where('category_id', $student_course_id)
             ->published()
             ->orderBy('published_at', 'desc');
 

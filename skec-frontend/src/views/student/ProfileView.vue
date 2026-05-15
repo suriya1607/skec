@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-4 mb-5">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">My Profile</h1>
-        <p class="text-sm text-gray-500 mt-1">Email is fixed. You can update the remaining details.</p>
+        <p class="text-sm text-gray-500 mt-1">You can update your profile details and password. Registration and course details cannot be changed.</p>
       </div>
       <AppBadge :variant="authStore.user?.status" :label="authStore.user?.status || '-'" dot />
     </div>
@@ -85,6 +85,7 @@
             placeholder="Select category"
             :error="fieldErrors.community_category"
             required
+            disabled
           />
           <AppInput
             v-model="form.contact_phone"
@@ -92,28 +93,32 @@
             type="tel"
             :error="fieldErrors.contact_phone"
             required
+            disabled
           />
           <AppInput
-            v-model="form.qualification"
+            :model-value="form.qualification"
             label="Qualification"
             :error="fieldErrors.qualification"
             required
+            disabled
           />
           <AppSelect
-            v-model="form.course_id"
+            :model-value="form.course_id"
             label="Course"
             :options="courseOptions"
             placeholder="Select course"
             :error="fieldErrors.course_id"
             required
+            disabled
           />
           <AppSelect
-            v-model="form.medium_of_studying"
+            :model-value="form.medium_of_studying"
             label="Medium of studying"
             :options="mediumOptions"
             placeholder="Select medium"
             :error="fieldErrors.medium_of_studying"
             required
+            disabled
           />
           <div class="md:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-1.5" for="profile-address">
@@ -125,6 +130,7 @@
               rows="2"
               class="input-base resize-none"
               required
+              disabled
             />
             <p v-if="fieldErrors.address" class="mt-1.5 text-xs text-red-600">{{ fieldErrors.address }}</p>
           </div>
@@ -251,7 +257,10 @@ async function handleSave() {
   Object.keys(fieldErrors).forEach(k => delete fieldErrors[k])
 
   const data = new FormData()
+  const editableFields = ['name', 'photo', 'father_name', 'dob', 'gender', 'password', 'password_confirmation']
+  
   Object.entries(form).forEach(([key, value]) => {
+    if (!editableFields.includes(key)) return
     if (key === 'photo' && !value) return
     if ((key === 'password' || key === 'password_confirmation') && !form.password) return
     data.append(key, value ?? '')

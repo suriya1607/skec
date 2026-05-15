@@ -27,6 +27,11 @@ class Note extends Model
         'file_path',
     ];
 
+    protected $appends = [
+    'file_size_formatted',
+    'file_url',
+    ];
+
     protected $casts = [
         'published_at' => 'datetime',
         'file_size'    => 'integer',
@@ -73,5 +78,9 @@ class Note extends Model
             return number_format($bytes / 1024, 2) . ' KB';
         }
         return $bytes . ' bytes';
+    }
+    public function getFileUrlAttribute(): string
+    {
+        return route('notes.view', ['id' => $this->id]);
     }
 }
