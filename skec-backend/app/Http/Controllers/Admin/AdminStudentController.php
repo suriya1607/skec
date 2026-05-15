@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateStudentProfileRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\User;
 use App\Services\SessionService;
@@ -91,5 +92,30 @@ class AdminStudentController extends Controller
         $this->sessionService->terminateAllUserSessions($student);
         $student->tokens()->delete();
         return $this->success(null, 'Student logged out from all sessions');
+    }
+    
+    public function profileupdate(UpdateStudentProfileRequest $request, int $id): JsonResponse
+    {
+        $student = User::with('profile')->students()->findOrFail($id);
+
+        // update users table
+        $student->update([
+            'name' => $request->name,
+            'status' => $request->status ?? $student->status,
+        ]);
+
+        // update profile table
+        $student->profile()->update([
+            'father_name' => $request->father_name,
+            'dob' => $request->dob,
+            'gender' => $request->gender,
+            'address' => $request->address,
+            'community_category' => $request->community_category,
+            'contact_phone' => $request->contact_phone,
+            'qualification' => $request->qualification,
+            'course_id' => $request->course_id,
+            'medium_of_studying' => $request->medium_of_studying,
+        ]);
+        return $this->success(null, 'Student profile updated');
     }
 }

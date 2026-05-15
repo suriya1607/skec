@@ -55,6 +55,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/students/{id}/photo',    [AdminStudentController::class, 'downloadPhoto']);
             Route::patch('/students/{id}',        [AdminStudentController::class, 'update']);
             Route::delete('/students/{id}',       [AdminStudentController::class, 'destroy']);
+             Route::patch('/students/profile/{id}',[AdminStudentController::class, 'profileupdate']);
             Route::post('/students/{id}/logout',  [AdminStudentController::class, 'forceLogout']);
 
             // Invitations

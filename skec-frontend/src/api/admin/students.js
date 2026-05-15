@@ -7,4 +7,5 @@ export const adminStudentsApi = {
   update:     (id, data) => api.patch(`/admin/students/${id}`, data),
   delete:     (id)     => api.delete(`/admin/students/${id}`),
   forceLogout:(id)     => api.post(`/admin/students/${id}/logout`),
+  profileUpdate: (id, data) => api.patch(`/admin/students/profile/${id}`, data)
 }

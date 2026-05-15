@@ -321,7 +321,7 @@ async function saveEdit() {
 
   saving.value = true
 try {
-  await adminStudentsApi.update(student.value.id, data)
+  await adminStudentsApi.profileUpdate(student.value.id, data)
   const updated = await adminStudentsApi.get(route.params.id)
   student.value = updated.data.data.student
   fillForm()
