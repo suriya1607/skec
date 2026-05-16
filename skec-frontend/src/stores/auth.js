@@ -61,6 +61,11 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value
   }
 
+  function setUser(userData) {
+    user.value = userData
+    localStorage.setItem('skec_user', JSON.stringify(userData))
+  }
+
   async function initializeAuth() {
     if (!token.value) return
     try {
@@ -77,6 +82,6 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user, token, sessionToken, isLoading,
     isLoggedIn, isAdmin, isStudent, userInitials,
-    login, logout, fetchMe, initializeAuth, setFromRegister,
+    login, logout, fetchMe, initializeAuth, setFromRegister, setUser,
   }
 })

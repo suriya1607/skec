@@ -14,6 +14,7 @@ class UpdateNoteRequest extends FormRequest
             'title'       => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:note_categories,id'],
+            'subject_id'  => ['nullable', 'exists:note_subjects,id'],
             'status'      => ['sometimes', 'in:published,draft'],
         ];
     }

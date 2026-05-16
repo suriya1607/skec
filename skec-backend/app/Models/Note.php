@@ -11,6 +11,7 @@ class Note extends Model
         'slug',
         'description',
         'category_id',
+        'subject_id',
         'file_name',
         'file_path',
         'file_size',
@@ -27,6 +28,11 @@ class Note extends Model
         'file_path',
     ];
 
+    protected $appends = [
+    'file_size_formatted',
+    'file_url',
+    ];
+
     protected $casts = [
         'published_at' => 'datetime',
         'file_size'    => 'integer',
@@ -38,6 +44,11 @@ class Note extends Model
     public function category()
     {
         return $this->belongsTo(NoteCategory::class, 'category_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(NoteSubject::class, 'subject_id');
     }
 
     public function uploader()
@@ -73,5 +84,9 @@ class Note extends Model
             return number_format($bytes / 1024, 2) . ' KB';
         }
         return $bytes . ' bytes';
+    }
+    public function getFileUrlAttribute(): string
+    {
+        return route('notes.view', ['id' => $this->id]);
     }
 }

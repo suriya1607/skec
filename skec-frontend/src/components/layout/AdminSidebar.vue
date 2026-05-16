@@ -20,8 +20,14 @@
       >
         <!-- Brand -->
         <div class="flex items-center gap-3 px-5 py-5 border-b border-gray-100 flex-shrink-0">
-          <div class="flex-shrink-0 w-9 h-9 bg-primary-900 rounded-xl flex items-center justify-center">
-            <span class="text-white font-bold text-sm">SK</span>
+          <div class="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden">
+            <img
+              v-if="settingsStore.get('app_logo')"
+              :src="settingsStore.get('app_logo')"
+              :alt="settingsStore.get('app_name', 'SKEC')"
+              class="w-full h-full object-contain p-0.5"
+            />
+            <span v-else class="text-white font-bold text-sm">SK</span>
           </div>
           <div v-if="uiStore.sidebarOpen || isMobile" class="min-w-0">
             <p class="text-sm font-bold text-primary-900 truncate">SKEC</p>
@@ -72,16 +78,18 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useUiStore }   from '../../stores/ui'
+import { useSettingsStore } from '../../stores/settings'
 import {
-  HomeIcon, UsersIcon, DocumentTextIcon, TagIcon,
+  HomeIcon, UsersIcon, DocumentTextIcon, TagIcon, BookOpenIcon,
   EnvelopeIcon, ComputerDesktopIcon, CogIcon,
   ClipboardDocumentListIcon, ArrowRightOnRectangleIcon,
 } from '@heroicons/vue/24/outline'
 
 const route  = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
-const uiStore   = useUiStore()
+const authStore     = useAuthStore()
+const uiStore       = useUiStore()
+const settingsStore = useSettingsStore()
 
 const isMobile = ref(false)
 
@@ -102,6 +110,7 @@ const navItems = [
   { name: 'students',    label: 'Students',        to: '/admin/students',    icon: UsersIcon },
   { name: 'notes',       label: 'Notes',           to: '/admin/notes',       icon: DocumentTextIcon },
   { name: 'categories',  label: 'Categories',      to: '/admin/categories',  icon: TagIcon },
+  { name: 'subjects',    label: 'Subjects',         to: '/admin/subjects',    icon: BookOpenIcon },
   { name: 'invitations', label: 'Invitations',     to: '/admin/invitations', icon: EnvelopeIcon },
   { name: 'sessions',    label: 'Sessions',        to: '/admin/sessions',    icon: ComputerDesktopIcon },
   { name: 'logs',        label: 'Activity Logs',   to: '/admin/logs',        icon: ClipboardDocumentListIcon },

@@ -18,6 +18,7 @@ class UploadNoteRequest extends FormRequest
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:note_categories,id'],
+            'subject_id'  => ['nullable', 'exists:note_subjects,id'],
             'file'        => ['required', 'file', 'mimes:pdf', "max:{$maxSizeKb}"],
             'status'      => ['nullable', 'in:published,draft'],
         ];

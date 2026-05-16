@@ -22,12 +22,21 @@ class NoteController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Note::with('category', 'uploader')
+
+        $isstudent = auth()->user();
+        $student_course_id = $isstudent->profile->course_id;
+
+        $query = Note::with('category', 'subject', 'uploader')
+            ->where('category_id', $student_course_id)
             ->published()
             ->orderBy('published_at', 'desc');
 
         if ($request->has('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('subject_id')) {
+            $query->where('subject_id', $request->subject_id);
         }
 
         if ($request->has('search')) {
@@ -95,7 +104,7 @@ class NoteController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'action' => ['required', 'in:opened,closed,page_changed'],
+            'action' => ['required', 'in:opened,closed,page_changed,screenshot_attempt,capture_attempt,print_attempt,copy_attempt'],
             'page_number' => ['nullable', 'integer'],
             'duration_seconds' => ['nullable', 'integer'],
         ]);

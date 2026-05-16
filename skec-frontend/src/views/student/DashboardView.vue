@@ -7,7 +7,7 @@
     </div>
 
     <!-- Category filter tabs -->
-    <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-6">
+    <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-4">
       <button
         v-for="cat in ['All', ...categories]"
         :key="typeof cat === 'string' ? cat : cat.id"
@@ -24,6 +24,27 @@
           <span class="w-2 h-2 rounded-full" :style="{ background: cat.color }" />
           {{ cat.name }}
           <span class="text-xs opacity-70">({{ cat.notes_count ?? '' }})</span>
+        </span>
+      </button>
+    </div>
+
+    <!-- Subject filter tabs -->
+    <div v-if="subjects.length" class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 mb-6">
+      <button
+        v-for="sub in ['All', ...subjects]"
+        :key="typeof sub === 'string' ? sub : sub.id"
+        @click="selectSubject(sub)"
+        :class="[
+          'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+          isSubjectSelected(sub)
+            ? 'bg-indigo-600 text-white border-indigo-600'
+            : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-400',
+        ]"
+      >
+        <span v-if="typeof sub === 'string'">All Subjects</span>
+        <span v-else class="flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full" :style="{ background: sub.color || '#6366f1' }" />
+          {{ sub.name }}
         </span>
       </button>
     </div>
@@ -101,9 +122,11 @@ const router     = useRouter()
 const loading    = ref(false)
 const notes      = ref([])
 const categories = ref([])
+const subjects   = ref([])
 const meta       = ref(null)
 const search     = ref('')
 const selectedCategoryId = ref(null)
+const selectedSubjectId  = ref(null)
 
 function selectCategory(cat) {
   selectedCategoryId.value = typeof cat === 'string' ? null : cat.id
@@ -115,6 +138,16 @@ function isSelected(cat) {
   return selectedCategoryId.value === cat.id
 }
 
+function selectSubject(sub) {
+  selectedSubjectId.value = typeof sub === 'string' ? null : sub.id
+  fetchNotes(1)
+}
+
+function isSubjectSelected(sub) {
+  if (typeof sub === 'string') return selectedSubjectId.value === null
+  return selectedSubjectId.value === sub.id
+}
+
 async function fetchNotes(p = 1) {
   loading.value = true
   try {
@@ -122,6 +155,7 @@ async function fetchNotes(p = 1) {
       page: p,
       search: search.value,
       category_id: selectedCategoryId.value,
+      subject_id: selectedSubjectId.value,
     })
     notes.value = res.data.data
     meta.value  = res.data.meta
@@ -136,7 +170,11 @@ function openNote(note) {
 
 onMounted(async () => {
   fetchNotes()
-  const res = await notesApi.categories()
-  categories.value = res.data.data
+  const [catRes, subRes] = await Promise.all([
+    notesApi.categories(),
+    notesApi.subjects(),
+  ])
+  categories.value = catRes.data.data
+  subjects.value   = subRes.data.data
 })
 </script>

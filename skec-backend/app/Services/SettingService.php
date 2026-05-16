@@ -9,7 +9,7 @@ class SettingService
 {
     public function getAllSettings(): array
     {
-        $settings = Setting::orderBy('group')->orderBy('key')->get();
+        $settings = Setting::orderBy('group')->orderBy('id')->get();
         $result = [];
         foreach ($settings as $setting) {
             $result[$setting->key] = [

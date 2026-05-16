@@ -13,19 +13,32 @@
     <!-- Table -->
     <AppTable :columns="columns" :rows="students" :loading="loading" empty-title="No students found">
       <template #cell-name="{ row }">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <img
+            v-if="row.photo_url"
+            :src="row.photo_url"
+            :alt="row.name"
+            class="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+          />
+          <div v-else class="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
             <span class="text-primary-700 text-xs font-bold">{{ getInitials(row.name) }}</span>
           </div>
-          <RouterLink :to="`/admin/students/${row.id}`" class="font-medium text-gray-800 hover:text-primary-600">{{ row.name }}</RouterLink>
+          <div class="min-w-0">
+            <RouterLink :to="`/admin/students/${row.id}`" class="font-medium text-gray-800 hover:text-primary-600 block truncate">{{ row.name }}</RouterLink>
+            <p class="text-xs text-gray-400">{{ row.profile?.reg_no || 'No reg no' }}</p>
+          </div>
         </div>
       </template>
+      <template #cell-course="{ row }">{{ row.profile?.course?.name || '—' }}</template>
       <template #cell-status="{ row }">
         <AppBadge :variant="row.status" :label="row.status" dot />
       </template>
       <template #cell-created_at="{ row }">{{ formatDate(row.created_at) }}</template>
       <template #cell-actions="{ row }">
         <div class="flex items-center gap-2">
+          <RouterLink :to="`/admin/students/${row.id}`">
+            <AppButton size="xs" variant="secondary">View</AppButton>
+          </RouterLink>
           <AppButton size="xs" variant="ghost" @click="toggleStatus(row)">
             {{ row.status === 'active' ? 'Deactivate' : 'Activate' }}
           </AppButton>
@@ -58,6 +71,7 @@ const page         = ref(1)
 const columns = [
   { key: 'name',       label: 'Student' },
   { key: 'email',      label: 'Email' },
+  { key: 'course',     label: 'Course' },
   { key: 'status',     label: 'Status' },
   { key: 'created_at', label: 'Joined' },
   { key: 'actions',    label: 'Actions' },

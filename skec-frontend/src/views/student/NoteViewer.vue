@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter }  from 'vue-router'
 import { notesApi }             from '../../api/student/notes'
 import { useAuthStore }         from '../../stores/auth'
@@ -45,6 +45,50 @@ const isLoading  = ref(true)
 const loadError  = ref('')
 const streamUrl  = ref('')
 const noteId     = computed(() => parseInt(route.params.id))
+const lastSecurityLogAt = new Map()
+let originalGetDisplayMedia = null
+
+function logSecurityEvent(action) {
+  const now = Date.now()
+  const last = lastSecurityLogAt.get(action) || 0
+  if (now - last < 3000) return
+  lastSecurityLogAt.set(action, now)
+  notesApi.logAccess(noteId.value, { action }).catch(() => {})
+}
+
+function handleKeyDown(event) {
+  if (event.key === 'PrintScreen') {
+    logSecurityEvent('screenshot_attempt')
+  }
+
+  if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+    logSecurityEvent('print_attempt')
+  }
+}
+
+function handleCopyAttempt(event) {
+  logSecurityEvent('copy_attempt')
+  event.preventDefault()
+}
+
+function handleBeforePrint() {
+  logSecurityEvent('print_attempt')
+}
+
+function patchScreenCaptureApi() {
+  if (!navigator.mediaDevices?.getDisplayMedia) return
+  originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices)
+  navigator.mediaDevices.getDisplayMedia = (...args) => {
+    logSecurityEvent('capture_attempt')
+    return originalGetDisplayMedia(...args)
+  }
+}
+
+function restoreScreenCaptureApi() {
+  if (originalGetDisplayMedia && navigator.mediaDevices?.getDisplayMedia) {
+    navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia
+  }
+}
 
 onMounted(async () => {
   try {
@@ -53,10 +97,26 @@ onMounted(async () => {
 
     // Log opened
     await notesApi.logAccess(noteId.value, { action: 'opened' })
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('beforeprint', handleBeforePrint)
+    document.addEventListener('copy', handleCopyAttempt)
+    document.addEventListener('cut', handleCopyAttempt)
+    document.addEventListener('contextmenu', handleCopyAttempt)
+    patchScreenCaptureApi()
   } catch (err) {
     loadError.value = err.response?.data?.message || 'Could not open this note.'
   } finally {
     isLoading.value = false
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('beforeprint', handleBeforePrint)
+  document.removeEventListener('copy', handleCopyAttempt)
+  document.removeEventListener('cut', handleCopyAttempt)
+  document.removeEventListener('contextmenu', handleCopyAttempt)
+  restoreScreenCaptureApi()
 })
 </script>

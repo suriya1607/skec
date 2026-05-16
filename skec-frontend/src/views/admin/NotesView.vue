@@ -10,18 +10,32 @@
     <!-- Filters -->
     <div class="card mb-5 flex flex-wrap gap-4">
       <AppInput v-model="search" placeholder="Search notes…" class="flex-1 min-w-48" @input="debouncedFetch" />
-      <AppSelect v-model="statusFilter" :options="statusOptions" class="w-40" @change="() => fetchNotes(1)" />
+      <AppSelect v-model="statusFilter"   :options="statusOptions"   class="w-40" @change="() => fetchNotes(1)" />
       <AppSelect v-model="categoryFilter" :options="categoryOptions" class="w-48" @change="() => fetchNotes(1)" />
+      <AppSelect v-model="subjectFilter"  :options="subjectOptions"  class="w-48" @change="() => fetchNotes(1)" />
     </div>
 
     <AppTable :columns="columns" :rows="notes" :loading="loading">
       <template #cell-title="{ row }">
-        <span class="font-medium text-gray-800">{{ row.title }}</span>
+        <a
+    :href="row.file_url"
+    target="_blank"
+    class="font-medium text-blue-600 hover:underline"
+  >
+    {{ row.title }}
+  </a>
       </template>
       <template #cell-category="{ row }">
         <span v-if="row.category" class="inline-flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full" :style="{ background: row.category.color }" />
           {{ row.category.name }}
+        </span>
+        <span v-else class="text-gray-400">—</span>
+      </template>
+      <template #cell-subject="{ row }">
+        <span v-if="row.subject" class="inline-flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full" :style="{ background: row.subject.color || '#6366f1' }" />
+          {{ row.subject.name }}
         </span>
         <span v-else class="text-gray-400">—</span>
       </template>
@@ -48,8 +62,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { adminNotesApi }       from '../../api/admin/notes'
-import { adminCategoriesApi }  from '../../api/admin/categories'
+import { adminNotesApi }      from '../../api/admin/notes'
+import { adminCategoriesApi } from '../../api/admin/categories'
+import { adminSubjectsApi }   from '../../api/admin/subjects'
 import { formatDate, debounce } from '../../utils/helpers'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 import AppInput      from '../../components/common/AppInput.vue'
@@ -65,7 +80,9 @@ const meta           = ref(null)
 const search         = ref('')
 const statusFilter   = ref('')
 const categoryFilter = ref('')
+const subjectFilter  = ref('')
 const categoryOptions = ref([{ value: '', label: 'All Categories' }])
+const subjectOptions  = ref([{ value: '', label: 'All Subjects' }])
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -76,6 +93,7 @@ const statusOptions = [
 const columns = [
   { key: 'title',       label: 'Title' },
   { key: 'category',    label: 'Category' },
+  { key: 'subject',     label: 'Subject' },
   { key: 'file_size',   label: 'Size' },
   { key: 'status',      label: 'Status' },
   { key: 'view_count',  label: 'Views' },
@@ -86,7 +104,13 @@ const columns = [
 async function fetchNotes(p = 1) {
   loading.value = true
   try {
-    const res = await adminNotesApi.list({ page: p, search: search.value, status: statusFilter.value, category_id: categoryFilter.value })
+    const res = await adminNotesApi.list({
+      page: p,
+      search: search.value,
+      status: statusFilter.value,
+      category_id: categoryFilter.value,
+      subject_id: subjectFilter.value,
+    })
     notes.value = res.data.data
     meta.value  = res.data.meta
   } finally { loading.value = false }
@@ -107,10 +131,17 @@ async function deleteNote(note) {
 
 onMounted(async () => {
   fetchNotes()
-  const res = await adminCategoriesApi.list()
+  const [catRes, subRes] = await Promise.all([
+    adminCategoriesApi.list(),
+    adminSubjectsApi.list(),
+  ])
   categoryOptions.value = [
     { value: '', label: 'All Categories' },
-    ...res.data.data.map(c => ({ value: c.id, label: c.name }))
+    ...catRes.data.data.map(c => ({ value: c.id, label: c.name }))
+  ]
+  subjectOptions.value = [
+    { value: '', label: 'All Subjects' },
+    ...subRes.data.data.map(s => ({ value: s.id, label: s.name }))
   ]
 })
 </script>

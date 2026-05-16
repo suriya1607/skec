@@ -65,10 +65,11 @@ import PdfControls from './PdfControls.vue'
 import { ExclamationCircleIcon } from '@heroicons/vue/24/outline'
 import { notesApi } from '../../api/student/notes'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).href
+// pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+//   'pdfjs-dist/build/pdf.worker.min.mjs',
+//   import.meta.url
+// ).href
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs'
 
 const props = defineProps({
   noteId:            { type: Number, required: true },

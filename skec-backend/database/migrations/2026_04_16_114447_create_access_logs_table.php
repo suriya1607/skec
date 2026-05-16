@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('note_id')->constrained('notes')->onDelete('cascade');
             $table->foreignId('session_id')->nullable()->constrained('user_sessions')->onDelete('set null');
-            $table->enum('action', ['opened', 'closed', 'page_changed']);
+            $table->enum('action', ['opened', 'closed', 'page_changed', 'screenshot_attempt', 'capture_attempt', 'print_attempt', 'copy_attempt']);
             $table->integer('page_number')->nullable();
             $table->string('ip_address')->nullable();
             $table->integer('duration_seconds')->nullable();
