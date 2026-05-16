@@ -11,6 +11,7 @@ class Note extends Model
         'slug',
         'description',
         'category_id',
+        'subject_id',
         'file_name',
         'file_path',
         'file_size',
@@ -43,6 +44,11 @@ class Note extends Model
     public function category()
     {
         return $this->belongsTo(NoteCategory::class, 'category_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(NoteSubject::class, 'subject_id');
     }
 
     public function uploader()

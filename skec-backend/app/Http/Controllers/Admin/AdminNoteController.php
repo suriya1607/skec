@@ -19,7 +19,7 @@ class AdminNoteController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Note::with('category', 'uploader');
+        $query = Note::with('category', 'subject', 'uploader');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -30,6 +30,9 @@ class AdminNoteController extends Controller
         }
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('subject_id')) {
+            $query->where('subject_id', $request->subject_id);
         }
 
         $notes = $query->orderBy('created_at', 'desc')->paginate(15);
@@ -73,27 +76,28 @@ class AdminNoteController extends Controller
         $slug = Str::slug($title) . '-' . substr($uuid, 0, 8);
 
         $note = Note::create([
-            'title' => $title,
-            'slug' => $slug,
+            'title'       => $title,
+            'slug'        => $slug,
             'description' => $request->description,
             'category_id' => $request->category_id,
-            'file_name' => $file->getClientOriginalName(),
-            'file_path' => $filePath,
-            'file_size' => $file->getSize(),
-            'file_hash' => $fileHash,
-            'mime_type' => $file->getMimeType(),
+            'subject_id'  => $request->subject_id,
+            'file_name'   => $file->getClientOriginalName(),
+            'file_path'   => $filePath,
+            'file_size'   => $file->getSize(),
+            'file_hash'   => $fileHash,
+            'mime_type'   => $file->getMimeType(),
             'total_pages' => $totalPages,
-            'status' => $request->status ?? 'draft',
+            'status'      => $request->status ?? 'draft',
             'uploaded_by' => $request->user()->id,
-            'published_at' => ($request->status === 'published') ? now() : null,
+            'published_at'=> ($request->status === 'published') ? now() : null,
         ]);
 
-        return $this->created($note->load('category', 'uploader'), 'Note uploaded successfully');
+        return $this->created($note->load('category', 'subject', 'uploader'), 'Note uploaded successfully');
     }
 
     public function show(int $id): JsonResponse
     {
-        $note = Note::with('category', 'uploader')->findOrFail($id);
+        $note = Note::with('category', 'subject', 'uploader')->findOrFail($id);
         return $this->success($note);
     }
 
@@ -111,7 +115,7 @@ class AdminNoteController extends Controller
         }
 
         $note->update($data);
-        return $this->success($note->fresh('category', 'uploader'), 'Note updated');
+        return $this->success($note->fresh('category', 'subject', 'uploader'), 'Note updated');
     }
 
     public function destroy(int $id): JsonResponse

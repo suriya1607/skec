@@ -80,7 +80,7 @@ import { useAuthStore } from '../../stores/auth'
 import { useUiStore }   from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
 import {
-  HomeIcon, UsersIcon, DocumentTextIcon, TagIcon,
+  HomeIcon, UsersIcon, DocumentTextIcon, TagIcon, BookOpenIcon,
   EnvelopeIcon, ComputerDesktopIcon, CogIcon,
   ClipboardDocumentListIcon, ArrowRightOnRectangleIcon,
 } from '@heroicons/vue/24/outline'
@@ -110,6 +110,7 @@ const navItems = [
   { name: 'students',    label: 'Students',        to: '/admin/students',    icon: UsersIcon },
   { name: 'notes',       label: 'Notes',           to: '/admin/notes',       icon: DocumentTextIcon },
   { name: 'categories',  label: 'Categories',      to: '/admin/categories',  icon: TagIcon },
+  { name: 'subjects',    label: 'Subjects',         to: '/admin/subjects',    icon: BookOpenIcon },
   { name: 'invitations', label: 'Invitations',     to: '/admin/invitations', icon: EnvelopeIcon },
   { name: 'sessions',    label: 'Sessions',        to: '/admin/sessions',    icon: ComputerDesktopIcon },
   { name: 'logs',        label: 'Activity Logs',   to: '/admin/logs',        icon: ClipboardDocumentListIcon },

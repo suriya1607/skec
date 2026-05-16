@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureUserActive;
 use App\Http\Middleware\EnsureValidSession;
@@ -28,7 +29,8 @@ Route::prefix('v1')->group(function () {
 
     // Public settings & landing data
     Route::get('/settings/public', [SettingsController::class, 'public']);
-    Route::get('/categories',       [CategoryController::class, 'indexPublic']);
+    Route::get('/categories',      [CategoryController::class, 'indexPublic']);
+    Route::get('/subjects',        [SubjectController::class, 'indexPublic']);
 
     // ─── AUTHENTICATED ROUTES ───────────────────────────────────────────────
     Route::middleware(['auth:sanctum', EnsureValidSession::class, EnsureUserActive::class])->group(function () {
@@ -77,6 +79,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/categories',         [CategoryController::class, 'store']);
             Route::patch('/categories/{id}',   [CategoryController::class, 'update']);
             Route::delete('/categories/{id}',  [CategoryController::class, 'destroy']);
+
+            // Subjects
+            Route::get('/subjects',            [SubjectController::class, 'index']);
+            Route::post('/subjects',           [SubjectController::class, 'store']);
+            Route::patch('/subjects/{id}',     [SubjectController::class, 'update']);
+            Route::delete('/subjects/{id}',    [SubjectController::class, 'destroy']);
 
             // Sessions
             Route::get('/sessions',            [SessionController::class, 'index']);

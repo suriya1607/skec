@@ -45,6 +45,13 @@
         />
 
         <AppSelect
+          v-model="form.subject_id"
+          label="Subject"
+          :options="subjectOptions"
+          placeholder="Select subject"
+        />
+
+        <AppSelect
           v-model="form.status"
           label="Status"
           :options="[{value:'draft',label:'Draft'},{value:'published',label:'Published'}]"
@@ -68,6 +75,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminNotesApi }      from '../../api/admin/notes'
 import { adminCategoriesApi } from '../../api/admin/categories'
+import { adminSubjectsApi }   from '../../api/admin/subjects'
 import { useSettingsStore }   from '../../stores/settings'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import AppAlert      from '../../components/common/AppAlert.vue'
@@ -86,8 +94,9 @@ const error           = ref('')
 const success         = ref(false)
 const fieldErrors     = reactive({})
 const categoryOptions = ref([{ value: '', label: 'No Category' }])
+const subjectOptions  = ref([{ value: '', label: 'No Subject' }])
 
-const form = reactive({ file: null, title: '', description: '', category_id: '', status: 'draft' })
+const form = reactive({ file: null, title: '', description: '', category_id: '', subject_id: '', status: 'draft' })
 
 function onFileSelected(file) {
   if (file && !form.title) {
@@ -108,6 +117,7 @@ async function handleUpload() {
   data.append('description', form.description)
   data.append('status', form.status)
   if (form.category_id) data.append('category_id', form.category_id)
+  if (form.subject_id)  data.append('subject_id', form.subject_id)
 
   uploading.value = true
   try {
@@ -126,10 +136,17 @@ async function handleUpload() {
 }
 
 onMounted(async () => {
-  const res = await adminCategoriesApi.list()
+  const [catRes, subRes] = await Promise.all([
+    adminCategoriesApi.list(),
+    adminSubjectsApi.list(),
+  ])
   categoryOptions.value = [
     { value: '', label: 'No Category' },
-    ...res.data.data.map(c => ({ value: c.id, label: c.name }))
+    ...catRes.data.data.map(c => ({ value: c.id, label: c.name }))
+  ]
+  subjectOptions.value = [
+    { value: '', label: 'No Subject' },
+    ...subRes.data.data.map(s => ({ value: s.id, label: s.name }))
   ]
 })
 </script>

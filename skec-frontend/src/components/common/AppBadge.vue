@@ -25,6 +25,8 @@ const variantMap = {
   admin:     'bg-indigo-100 text-indigo-800',
   student:   'bg-teal-100 text-teal-800',
   gray:      'bg-gray-100 text-gray-700',
+  warning:   'bg-orange-100 text-orange-700',
+  danger:    'bg-red-100 text-red-700',
 }
 
 const dotMap = {
