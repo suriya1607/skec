@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-4 mb-5">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">My Profile</h1>
-        <p class="text-sm text-gray-500 mt-1">You can update your profile details and password. Registration and course details cannot be changed.</p>
+        <p class="text-sm text-gray-500 mt-1">You can update your profile information and password. To modify registration or course details, please contact the administrator.</p>
       </div>
       <AppBadge :variant="authStore.user?.status" :label="authStore.user?.status || '-'" dot />
     </div>
@@ -43,6 +43,7 @@
             label="Full name"
             :error="fieldErrors.name"
             required
+            disabled
           />
           <AppInput
             :model-value="authStore.user?.email"
@@ -55,6 +56,7 @@
             label="Father's name"
             :error="fieldErrors.father_name"
             required
+            disabled
           />
           <AppInput
             v-model="form.reg_no"
@@ -69,6 +71,7 @@
             type="date"
             :error="fieldErrors.dob"
             required
+            disabled
           />
           <AppSelect
             v-model="form.gender"
@@ -77,6 +80,7 @@
             placeholder="Select gender"
             :error="fieldErrors.gender"
             required
+            disabled
           />
           <AppSelect
             v-model="form.community_category"
@@ -257,8 +261,8 @@ async function handleSave() {
   Object.keys(fieldErrors).forEach(k => delete fieldErrors[k])
 
   const data = new FormData()
-  const editableFields = ['name', 'photo', 'father_name', 'dob', 'gender', 'password', 'password_confirmation']
-  
+  const editableFields = ['photo', 'password', 'password_confirmation']
+
   Object.entries(form).forEach(([key, value]) => {
     if (!editableFields.includes(key)) return
     if (key === 'photo' && !value) return
