@@ -2,12 +2,29 @@
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Students</h1>
+      <AppButton variant="primary" :loading="exporting" @click="exportStudents">
+        <svg class="w-4 h-4 mr-1.5 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4 4m0 0l4-4m-4 4V4"/>
+        </svg>
+        Export CSV
+      </AppButton>
     </div>
 
     <!-- Filters -->
     <div class="card mb-5 flex flex-wrap gap-4">
       <AppInput v-model="search" placeholder="Search name or email…" class="flex-1 min-w-48" @input="debouncedFetch" />
-      <AppSelect v-model="statusFilter" :options="[{value:'',label:'All Statuses'},{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}]" class="w-44" @change="fetchStudents" />
+      <AppSelect
+        v-model="statusFilter"
+        :options="[{value:'',label:'All Statuses'},{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}]"
+        class="w-44"
+        @change="fetchStudents"
+      />
+      <AppSelect
+        v-model="courseFilter"
+        :options="courseOptions"
+        class="w-52"
+        @change="fetchStudents"
+      />
     </div>
 
     <!-- Table -->
@@ -51,8 +68,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { adminStudentsApi } from '../../api/admin/students'
+import { adminCategoriesApi } from '../../api/admin/categories'
 import { formatDate, getInitials, debounce } from '../../utils/helpers'
 import AppInput      from '../../components/common/AppInput.vue'
 import AppSelect     from '../../components/common/AppSelect.vue'
@@ -62,11 +80,19 @@ import AppButton     from '../../components/common/AppButton.vue'
 import AppPagination from '../../components/common/AppPagination.vue'
 
 const loading      = ref(false)
+const exporting    = ref(false)
 const students     = ref([])
 const meta         = ref(null)
 const search       = ref('')
 const statusFilter = ref('')
+const courseFilter = ref('')
 const page         = ref(1)
+const courses      = ref([])
+
+const courseOptions = computed(() => [
+  { value: '', label: 'All Courses' },
+  ...courses.value.map(c => ({ value: String(c.id), label: c.name })),
+])
 
 const columns = [
   { key: 'name',       label: 'Student' },
@@ -77,11 +103,19 @@ const columns = [
   { key: 'actions',    label: 'Actions' },
 ]
 
+function buildFilters() {
+  return {
+    search:    search.value || undefined,
+    status:    statusFilter.value || undefined,
+    course_id: courseFilter.value || undefined,
+  }
+}
+
 async function fetchStudents(p = 1) {
   loading.value = true
   page.value = p
   try {
-    const res = await adminStudentsApi.list({ page: p, search: search.value, status: statusFilter.value })
+    const res = await adminStudentsApi.list({ page: p, ...buildFilters() })
     students.value = res.data.data
     meta.value     = res.data.meta
   } finally {
@@ -89,7 +123,33 @@ async function fetchStudents(p = 1) {
   }
 }
 
+async function fetchCourses() {
+  try {
+    const res = await adminCategoriesApi.list()
+    courses.value = res.data.data ?? res.data
+  } catch {
+    courses.value = []
+  }
+}
+
 const debouncedFetch = debounce(() => fetchStudents(1), 300)
+
+async function exportStudents() {
+  exporting.value = true
+  try {
+    const res = await adminStudentsApi.export(buildFilters())
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `students_${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } finally {
+    exporting.value = false
+  }
+}
 
 async function toggleStatus(student) {
   const newStatus = student.status === 'active' ? 'inactive' : 'active'
@@ -103,5 +163,8 @@ async function confirmDelete(student) {
   fetchStudents(page.value)
 }
 
-onMounted(() => fetchStudents())
+onMounted(() => {
+  fetchCourses()
+  fetchStudents()
+})
 </script>

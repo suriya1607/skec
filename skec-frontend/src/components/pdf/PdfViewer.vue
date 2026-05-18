@@ -75,8 +75,10 @@ const props = defineProps({
   noteId:            { type: Number, required: true },
   streamUrl:         { type: String, required: true },
   studentEmail:      { type: String, required: true },
+  studentRegNo:      { type: String, default: '' },
+  studentName:       { type: String, default: '' },
   watermarkOpacity:  { type: Number, default: 0.15 },
-  watermarkTemplate: { type: String, default: '{email} | {date}' },
+  watermarkTemplate: { type: String, default: '{name} | {email} | {reg_no} | {date}' },
 })
 
 const emit = defineEmits(['loaded', 'error'])
@@ -150,20 +152,38 @@ async function renderPage(pageNum) {
 
 function drawWatermark(ctx, w, h) {
   const text = props.watermarkTemplate
-    .replace('{email}', props.studentEmail)
-    .replace('{date}', dayjs().format('DD/MM/YYYY'))
+    .replaceAll('{name}', props.studentName || '')
+    .replaceAll('{email}', props.studentEmail || '')
+    .replaceAll('{reg_no}', props.studentRegNo || '')
+    .replaceAll('{course}', props.studentCourse || '')
+    .replaceAll('{date}', dayjs().format('DD/MM/YYYY'))
+    .replaceAll('{time}', dayjs().format('hh:mm A'))
+
   ctx.save()
-  ctx.globalAlpha = props.watermarkOpacity
-  ctx.font        = 'bold 18px Arial'
-  ctx.fillStyle   = '#1A3C6E'
-  ctx.textAlign   = 'center'
+
+  ctx.globalAlpha = props.watermarkOpacity || 0.10
+
+  // slightly smaller font
+  ctx.font = 'bold 15px Arial'
+
+  ctx.fillStyle = '#1A3C6E'
+  ctx.textAlign = 'center'
+
+  // better angle
   ctx.rotate(-Math.PI / 6)
-  const step = 200
-  for (let y = -h; y < h * 2; y += step) {
-    for (let x = -w; x < w * 2; x += step) {
+
+  const textWidth = ctx.measureText(text).width
+
+  // tighter spacing without overlap
+  const gapX = textWidth + 70
+  const gapY = 130
+
+  for (let y = -h; y < h * 2; y += gapY) {
+    for (let x = -w; x < w * 2; x += gapX) {
       ctx.fillText(text, x, y)
     }
   }
+
   ctx.restore()
 }
 

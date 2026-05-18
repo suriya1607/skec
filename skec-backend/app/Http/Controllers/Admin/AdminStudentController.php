@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateStudentProfileRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\NoteCategory;
 use App\Models\User;
 use App\Services\SessionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminStudentController extends Controller
 {
@@ -33,9 +35,82 @@ class AdminStudentController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('course_id')) {
+            $query->whereHas('profile', fn($q) => $q->where('course_id', $request->course_id));
+        }
+
         $students = $query->orderBy('created_at', 'desc')->paginate(15);
 
         return $this->paginatedResponse($students);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $query = User::students()->with('profile.course');
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%"));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('course_id')) {
+            $query->whereHas('profile', fn($q) => $q->where('course_id', $request->course_id));
+        }
+
+        $students = $query->orderBy('created_at', 'desc')->get();
+
+        $filename = 'students_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($students) {
+            $handle = fopen('php://output', 'w');
+
+            // CSV Header
+            fputcsv($handle, [
+                'ID',
+                'Name',
+                'Email',
+                'Reg No',
+                'Course',
+                'Father Name',
+                'DOB',
+                'Gender',
+                'Contact Phone',
+                'Community Category',
+                'Qualification',
+                'Medium of Study',
+                'Status',
+                'Joined',
+            ]);
+
+            foreach ($students as $student) {
+                $profile = $student->profile;
+                fputcsv($handle, [
+                    $student->id,
+                    $student->name,
+                    $student->email,
+                    $profile?->reg_no ?? '',
+                    $profile?->course?->name ?? '',
+                    $profile?->father_name ?? '',
+                    $profile?->dob ? $profile->dob->format('d-m-Y') : '',
+                    $profile?->gender ?? '',
+                    $profile?->contact_phone ?? '',
+                    $profile?->community_category ?? '',
+                    $profile?->qualification ?? '',
+                    $profile?->medium_of_studying ?? '',
+                    $student->status,
+                    $student->created_at->format('d-m-Y'),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     public function show(int $id): JsonResponse
@@ -93,7 +168,7 @@ class AdminStudentController extends Controller
         $student->tokens()->delete();
         return $this->success(null, 'Student logged out from all sessions');
     }
-    
+
     public function profileupdate(UpdateStudentProfileRequest $request, int $id): JsonResponse
     {
         $student = User::with('profile')->students()->findOrFail($id);
