@@ -147,10 +147,10 @@ async function renderPage(pageNum) {
   canvas.height = viewport.height
   const ctx = canvas.getContext('2d')
   await page.render({ canvasContext: ctx, viewport, renderTextLayer: false }).promise
-  drawWatermark(ctx, canvas.width, canvas.height)
+  drawWatermark(ctx, canvas.width, canvas.height, zoom.value)
 }
 
-function drawWatermark(ctx, w, h) {
+function drawWatermark(ctx, w, h, scale) {
   const text = props.watermarkTemplate
     .replaceAll('{name}', props.studentName || '')
     .replaceAll('{email}', props.studentEmail || '')
@@ -161,22 +161,26 @@ function drawWatermark(ctx, w, h) {
 
   ctx.save()
 
-  ctx.globalAlpha = props.watermarkOpacity || 0.10
+  // Dynamic opacity - higher for better visibility
+  ctx.globalAlpha = props.watermarkOpacity || 0.2
 
-  // slightly smaller font
-  ctx.font = 'bold 15px Arial'
+  // Scale font size based on zoom and canvas dimensions
+  // Base font size with zoom multiplier
+  const baseFontSize = Math.max(20, Math.min(40, scale * 25))
+  ctx.font = `bold ${baseFontSize}px Arial`
 
   ctx.fillStyle = '#1A3C6E'
   ctx.textAlign = 'center'
 
-  // better angle
+  // Better angle
   ctx.rotate(-Math.PI / 6)
 
   const textWidth = ctx.measureText(text).width
 
-  // tighter spacing without overlap
-  const gapX = textWidth + 70
-  const gapY = 130
+  // Scale spacing based on zoom - prevents watermark from becoming too dense or sparse
+  const spacingMultiplier = Math.max(0.8, Math.min(1.5, scale))
+  const gapX = (textWidth + 80) * spacingMultiplier
+  const gapY = 150 * spacingMultiplier
 
   for (let y = -h; y < h * 2; y += gapY) {
     for (let x = -w; x < w * 2; x += gapX) {

@@ -378,12 +378,12 @@
                 {{ settings.openings_description || 'Secure your seat for the upcoming academic year.' }}
               </p>
             </div>
-            <a
-              :href="'mailto:' + (settings.contact_email || 'admin@srikumaran.in')"
-              class="flex-shrink-0 px-5 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-bold hover:bg-amber-700 transition shadow-sm"
+            <RouterLink
+              to="/contact"
+              class="flex-shrink-0 px-5 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-bold hover:bg-amber-700 transition shadow-sm inline-block"
             >
               Enquire Now →
-            </a>
+            </RouterLink>
           </div>
           <div class="grid sm:grid-cols-3 gap-3 sm:gap-4">
             <div
@@ -588,8 +588,8 @@
           <!-- Address -->
           <div>
             <h4 class="font-semibold text-sm mb-3">Address</h4>
-            <p v-if="settings.company_address" class="text-white/60 text-xs leading-relaxed">
-              {{ settings.company_address }}
+            <p v-if="settings.address" class="text-white/60 text-xs leading-relaxed">
+              {{ settings.address }}
             </p>
             <p v-else class="text-white/60 text-xs leading-relaxed">
               Near Church, Ariyankuppam<br />Puducherry - 605007
@@ -837,6 +837,7 @@ onMounted(async () => {
     const res = await settingsApi.getPublic()
     settings.value = res.data.data || {}
   } catch {}
+  console.log('Public settings loaded:', settings.value);
   startSliderTimer()
 })
 
