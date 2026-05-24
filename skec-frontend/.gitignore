@@ -39,8 +39,6 @@ __screenshots__/
 *.timestamp-*-*.mjs
 
 .env
-.env.staging
-.env.production
-.env.development
-.env.local
+.env.*
+!.env.example
 
