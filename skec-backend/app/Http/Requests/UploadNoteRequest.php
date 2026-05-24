@@ -15,12 +15,14 @@ class UploadNoteRequest extends FormRequest
         $maxSizeKb = $maxSizeMb * 1024;
 
         return [
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category_id' => ['nullable', 'exists:note_categories,id'],
-            'subject_id'  => ['nullable', 'exists:note_subjects,id'],
-            'file'        => ['required', 'file', 'mimes:pdf', "max:{$maxSizeKb}"],
-            'status'      => ['nullable', 'in:published,draft'],
+            'title'          => ['required', 'string', 'max:255'],
+            'description'    => ['nullable', 'string'],
+            'category_id'    => ['nullable', 'string'],
+            'category_ids'   => ['nullable', 'array'],
+            'category_ids.*' => ['exists:note_categories,id'],
+            'subject_id'     => ['nullable', 'exists:note_subjects,id'],
+            'file'           => ['required', 'file', 'mimes:pdf', "max:{$maxSizeKb}"],
+            'status'         => ['nullable', 'in:published,draft'],
         ];
     }
 

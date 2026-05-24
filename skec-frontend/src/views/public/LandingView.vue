@@ -38,6 +38,11 @@
             :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
             class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
           >{{ link.label }}</a>
+          <RouterLink
+            to="/contact"
+            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+          >Contact</RouterLink>
         </div>
 
         <!-- CTA + mobile menu -->
@@ -69,6 +74,11 @@
             @click="mobileNavOpen = false"
             class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
           >{{ link.label }}</a>
+          <RouterLink
+            to="/contact"
+            @click="mobileNavOpen = false"
+            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+          >Contact</RouterLink>
         </div>
       </Transition>
     </nav>
@@ -525,12 +535,12 @@
           {{ settings.cta_description || 'Join hundreds of students achieving their academic goals.' }}
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-          <a
-            :href="'mailto:' + (settings.contact_email || 'admin@srikumaran.in')"
-            class="px-6 py-3.5 bg-primary-700 text-white rounded-xl font-bold text-sm hover:bg-primary-800 transition shadow-md"
+          <RouterLink
+            to="/contact"
+            class="px-6 py-3.5 rounded-xl bg-white text-primary-900 font-bold text-sm hover:bg-primary-50 transition shadow-lg"
           >
-            {{ settings.cta_primary_label || 'Contact Us' }}
-          </a>
+            Contact Us →
+          </RouterLink>
           <RouterLink
             to="/login"
             class="px-6 py-3.5 border-2 border-primary-700 text-primary-700 rounded-xl font-bold text-sm hover:bg-primary-50 transition"
@@ -544,28 +554,71 @@
     <!-- ── Footer ────────────────────────────────────────────────── -->
     <footer class="bg-primary-700 text-white py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <img v-if="settings.app_logo" :src="settings.app_logo" class="h-7 w-auto opacity-80" alt="Logo" />
-            <div v-else class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-xs">SK</span>
+        <!-- Top section -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 pb-8 border-b border-white/10">
+          <!-- Brand -->
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <img v-if="settings.app_logo" :src="settings.app_logo" class="h-8 w-auto opacity-80" alt="Logo" />
+              <div v-else class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-xs">SK</span>
+              </div>
             </div>
-            <span class="font-bold text-sm text-white/80">
+            <p class="font-bold text-sm text-white">
               {{ settings.app_name || 'Sri Kumaran Education Centre' }}
-            </span>
+            </p>
           </div>
-          <p class="text-white/40 text-xs text-center">
+
+          <!-- Contact -->
+          <div>
+            <h4 class="font-semibold text-sm mb-3">Contact</h4>
+            <ul class="space-y-2 text-xs">
+              <li>
+                <a :href="'mailto:' + (settings.contact_email || 'admin@srikumaran.in')"
+                   class="text-white/60 hover:text-white/80 transition">
+                  {{ settings.contact_email || 'admin@srikumaran.in' }}
+                </a>
+              </li>
+              <li v-if="settings.contact_phone" class="text-white/60">
+                {{ settings.contact_phone }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- Address -->
+          <div>
+            <h4 class="font-semibold text-sm mb-3">Address</h4>
+            <p v-if="settings.company_address" class="text-white/60 text-xs leading-relaxed">
+              {{ settings.company_address }}
+            </p>
+            <p v-else class="text-white/60 text-xs leading-relaxed">
+              Near Church, Ariyankuppam<br />Puducherry - 605007
+            </p>
+          </div>
+
+          <!-- Legal -->
+          <div>
+            <h4 class="font-semibold text-sm mb-3">Legal</h4>
+            <ul class="space-y-2 text-xs">
+              <li>
+                <RouterLink to="/privacy-policy" class="text-white/60 hover:text-white/80 transition">
+                  Privacy Policy
+                </RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/terms-and-conditions" class="text-white/60 hover:text-white/80 transition">
+                  Terms & Conditions
+                </RouterLink>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Bottom section -->
+        <div class="text-center">
+          <p class="text-white/40 text-xs">
             © {{ new Date().getFullYear() }} {{ settings.app_name || 'Sri Kumaran Education Centre' }}. All rights reserved.
           </p>
-          <div class="flex flex-col items-end gap-1">
-            <a :href="'mailto:' + (settings.contact_email || 'admin@srikumaran.in')"
-               class="text-white/50 text-xs hover:text-white/80 transition">
-              {{ settings.contact_email || 'admin@srikumaran.in' }}
-            </a>
-            <span v-if="settings.contact_phone" class="text-white/40 text-xs">
-              {{ settings.contact_phone }}
-            </span>
-          </div>
         </div>
       </div>
     </footer>
@@ -599,7 +652,7 @@ function onScroll() { scrolled.value = window.scrollY > 40 }
 
 // ── Rank Holder Carousel ───────────────────────────────────────────────
 const currentSlide   = ref(0)
-const slidesPerView  = ref(3)
+const slidesPerView  = ref(5)
 const carouselTrack  = ref(null)
 let sliderTimer      = null
 let sliderPaused     = false
@@ -632,7 +685,7 @@ function goToSlide(i) { currentSlide.value = i }
 
 function updateSlidesPerView() {
   const w = window.innerWidth
-  slidesPerView.value = w < 640 ? 1 : w < 1024 ? 2 : 3
+  slidesPerView.value = w < 640 ? 1 : w < 1024 ? 2 : 4
 }
 
 function startSliderTimer() {

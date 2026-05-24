@@ -29,8 +29,9 @@ class Note extends Model
     ];
 
     protected $appends = [
-    'file_size_formatted',
-    'file_url',
+        'file_size_formatted',
+        'file_url',
+        'categories',
     ];
 
     protected $casts = [
@@ -41,11 +42,6 @@ class Note extends Model
     ];
 
     // Relationships
-    public function category()
-    {
-        return $this->belongsTo(NoteCategory::class, 'category_id');
-    }
-
     public function subject()
     {
         return $this->belongsTo(NoteSubject::class, 'subject_id');
@@ -61,6 +57,31 @@ class Note extends Model
         return $this->hasMany(AccessLog::class);
     }
 
+    // Accessor: resolve comma-separated category_id into array of category objects
+    public function getCategoriesAttribute()
+    {
+        if (empty($this->category_id)) {
+            return [];
+        }
+
+        $ids = array_map('intval', array_filter(explode(',', $this->category_id)));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        return NoteCategory::whereIn('id', $ids)->get();
+    }
+
+    // Helper: get array of category IDs
+    public function getCategoryIdsArray(): array
+    {
+        if (empty($this->category_id)) {
+            return [];
+        }
+        return array_map('intval', array_filter(explode(',', $this->category_id)));
+    }
+
     // Scopes
     public function scopePublished($query)
     {
@@ -70,6 +91,12 @@ class Note extends Model
     public function scopeDraft($query)
     {
         return $query->where('status', 'draft');
+    }
+
+    // Scope: filter notes that have a specific category ID in their comma-separated list
+    public function scopeHasCategory($query, $categoryId)
+    {
+        return $query->whereRaw('FIND_IN_SET(?, category_id)', [$categoryId]);
     }
 
     // Accessors

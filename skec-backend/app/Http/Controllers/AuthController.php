@@ -101,7 +101,7 @@ class AuthController extends Controller
                 'email'    => $invitation->email,
                 'password' => Hash::make($request->password),
                 'role'     => 'student',
-                'status'   => 'active',
+                'status'   => 'inactive',
             ]);
 
             $user->profile()->create($request->safe()->only([
@@ -134,13 +134,10 @@ class AuthController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-        return $this->created([
-            'user'          => $user->load('profile.course'),
-            'token'         => $sanctumToken,
-            'session_token' => $rawSessionToken,
-            'expires_at'    => now()->addMinutes(60)->toIso8601String(),
-            'settings'      => $this->settingService->getPublicSettings(),
-        ], 'Registration successful');
+    return $this->created([
+        'redirect' => env('FRONTEND_URL') . '/login',
+        'message'  => 'Registration successful. Contact administrator to activate your account.',
+    ], 'Registration successful');
     }
 
     public function logout(Request $request): JsonResponse
@@ -171,32 +168,45 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        $user->name = $request->name;
+        // Update name only if provided
+        if ($request->filled('name')) {
+            $user->name = $request->name;
+        }
 
+        // Update password
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
 
         $user->save();
 
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            $request->safe()->only([
-                'reg_no',
-                'father_name',
-                'dob',
-                'gender',
-                'address',
-                'community_category',
-                'contact_phone',
-                'qualification',
-                'course_id',
-                'medium_of_studying',
-            ])
-        );
+        // Update profile only if editable fields are sent
+        $profileData = $request->safe()->only([
+            'reg_no',
+            'father_name',
+            'dob',
+            'gender',
+            'address',
+            'community_category',
+            'contact_phone',
+            'qualification',
+            'course_id',
+            'medium_of_studying',
+        ]);
 
+        if (!empty($profileData)) {
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $profileData
+            );
+        }
+
+        // Update photo
         if ($request->hasFile('photo')) {
-            $user->addMediaFromRequest('photo')->toMediaCollection('student_photo');
+            $user->clearMediaCollection('student_photo');
+
+            $user->addMediaFromRequest('photo')
+                ->toMediaCollection('student_photo');
         }
 
         return $this->success([

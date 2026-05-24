@@ -11,11 +11,13 @@ class UpdateNoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category_id' => ['nullable', 'exists:note_categories,id'],
-            'subject_id'  => ['nullable', 'exists:note_subjects,id'],
-            'status'      => ['sometimes', 'in:published,draft'],
+            'title'          => ['sometimes', 'string', 'max:255'],
+            'description'    => ['nullable', 'string'],
+            'category_id'    => ['nullable', 'string'],
+            'category_ids'   => ['nullable', 'array'],
+            'category_ids.*' => ['exists:note_categories,id'],
+            'subject_id'     => ['nullable', 'exists:note_subjects,id'],
+            'status'         => ['sometimes', 'in:published,draft'],
         ];
     }
 }

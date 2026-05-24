@@ -72,12 +72,19 @@
         class="card hover:shadow-md transition-shadow group cursor-pointer"
         @click="openNote(note)"
       >
-        <!-- Category badge -->
+        <!-- Category badges -->
         <div class="flex items-center justify-between mb-3">
-          <span v-if="note.category" class="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full" :style="{ background: note.category.color + '20', color: note.category.color }">
-            <span class="w-1.5 h-1.5 rounded-full" :style="{ background: note.category.color }" />
-            {{ note.category.name }}
-          </span>
+          <div v-if="note.categories && note.categories.length" class="flex flex-wrap gap-1">
+            <span
+              v-for="cat in note.categories"
+              :key="cat.id"
+              class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+              :style="{ background: (cat.color || '#6b7280') + '20', color: cat.color || '#6b7280' }"
+            >
+              <span class="w-1.5 h-1.5 rounded-full" :style="{ background: cat.color || '#6b7280' }" />
+              {{ cat.name }}
+            </span>
+          </div>
           <span v-else class="text-xs text-gray-400">General</span>
           <DocumentTextIcon class="w-5 h-5 text-gray-300 group-hover:text-primary-400 transition-colors" />
         </div>
@@ -171,7 +178,7 @@ function openNote(note) {
 onMounted(async () => {
   fetchNotes()
   const [catRes, subRes] = await Promise.all([
-    notesApi.categories(),
+    notesApi.studentCategories(),
     notesApi.subjects(),
   ])
   categories.value = catRes.data.data

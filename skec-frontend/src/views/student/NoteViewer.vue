@@ -22,8 +22,10 @@
       :note-id="noteId"
       :stream-url="streamUrl"
       :student-email="authStore.user?.email || ''"
+      :student-reg-no="authStore.user?.profile?.reg_no || ''"
+      :student-name="authStore.user?.name || ''"
       :watermark-opacity="settingsStore.get('watermark_opacity', 0.15)"
-      :watermark-template="settingsStore.get('watermark_text_template', '{email} | {date}')"
+      :watermark-template="settingsStore.get('watermark_text_template', '{name} | {email} | {reg_no} | {date}')"
     />
   </div>
 </template>

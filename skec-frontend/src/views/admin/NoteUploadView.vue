@@ -6,7 +6,7 @@
     </div>
 
     <AppAlert v-if="error" type="error" :message="error" class="mb-5" dismissible />
-    <AppAlert v-if="success" type="success" message="Note uploaded successfully!" class="mb-5" />
+    <AppAlert v-if="success" type="success" :message="successMsg" class="mb-5" />
 
     <div class="card">
       <form @submit.prevent="handleUpload" class="space-y-6">
@@ -37,11 +37,12 @@
           />
         </div>
 
-        <AppSelect
-          v-model="form.category_id"
-          label="Category"
+        <AppMultiSelect
+          v-model="form.category_ids"
+          label="Categories"
           :options="categoryOptions"
-          placeholder="Select category"
+          placeholder="Select categories…"
+          :error="fieldErrors.category_ids"
         />
 
         <AppSelect
@@ -78,11 +79,12 @@ import { adminCategoriesApi } from '../../api/admin/categories'
 import { adminSubjectsApi }   from '../../api/admin/subjects'
 import { useSettingsStore }   from '../../stores/settings'
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
-import AppAlert      from '../../components/common/AppAlert.vue'
-import AppButton     from '../../components/common/AppButton.vue'
-import AppInput      from '../../components/common/AppInput.vue'
-import AppSelect     from '../../components/common/AppSelect.vue'
-import AppFileUpload from '../../components/common/AppFileUpload.vue'
+import AppAlert       from '../../components/common/AppAlert.vue'
+import AppButton      from '../../components/common/AppButton.vue'
+import AppInput       from '../../components/common/AppInput.vue'
+import AppSelect      from '../../components/common/AppSelect.vue'
+import AppMultiSelect from '../../components/common/AppMultiSelect.vue'
+import AppFileUpload  from '../../components/common/AppFileUpload.vue'
 
 const router        = useRouter()
 const settingsStore = useSettingsStore()
@@ -92,11 +94,12 @@ const uploading       = ref(false)
 const uploadProgress  = ref(0)
 const error           = ref('')
 const success         = ref(false)
+const successMsg      = ref('')
 const fieldErrors     = reactive({})
-const categoryOptions = ref([{ value: '', label: 'No Category' }])
+const categoryOptions = ref([])
 const subjectOptions  = ref([{ value: '', label: 'No Subject' }])
 
-const form = reactive({ file: null, title: '', description: '', category_id: '', subject_id: '', status: 'draft' })
+const form = reactive({ file: null, title: '', description: '', category_ids: [], subject_id: '', status: 'draft' })
 
 function onFileSelected(file) {
   if (file && !form.title) {
@@ -116,15 +119,20 @@ async function handleUpload() {
   data.append('title', form.title)
   data.append('description', form.description)
   data.append('status', form.status)
-  if (form.category_id) data.append('category_id', form.category_id)
   if (form.subject_id)  data.append('subject_id', form.subject_id)
+
+  // Append multiple category_ids
+  if (form.category_ids.length) {
+    form.category_ids.forEach(id => data.append('category_ids[]', id))
+  }
 
   uploading.value = true
   try {
-    await adminNotesApi.upload(data, e => {
+    const res = await adminNotesApi.upload(data, e => {
       uploadProgress.value = Math.round((e.loaded * 100) / e.total)
     })
     success.value = true
+    successMsg.value = res.data?.message || 'Note uploaded successfully!'
     setTimeout(() => router.push('/admin/notes'), 1500)
   } catch (err) {
     if (err.response?.data?.errors) Object.assign(fieldErrors, err.response.data.errors)
@@ -140,10 +148,7 @@ onMounted(async () => {
     adminCategoriesApi.list(),
     adminSubjectsApi.list(),
   ])
-  categoryOptions.value = [
-    { value: '', label: 'No Category' },
-    ...catRes.data.data.map(c => ({ value: c.id, label: c.name }))
-  ]
+  categoryOptions.value = catRes.data.data.map(c => ({ value: c.id, label: c.name, color: c.color }))
   subjectOptions.value = [
     { value: '', label: 'No Subject' },
     ...subRes.data.data.map(s => ({ value: s.id, label: s.name }))

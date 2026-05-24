@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UploadNoteRequest;
 use App\Http\Requests\UpdateNoteRequest;
+use App\Mail\NoteMail;
 use App\Models\Note;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Response;
@@ -19,7 +22,7 @@ class AdminNoteController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Note::with('category', 'subject', 'uploader');
+        $query = Note::with('subject', 'uploader');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -29,7 +32,7 @@ class AdminNoteController extends Controller
             $query->where('status', $request->status);
         }
         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->hasCategory($request->category_id);
         }
         if ($request->filled('subject_id')) {
             $query->where('subject_id', $request->subject_id);
@@ -44,11 +47,6 @@ class AdminNoteController extends Controller
     {
         $file = $request->file('file');
 
-        // Generate UUID filename
-        $uuid = Str::uuid()->toString();
-        $storagePath = env('NOTES_STORAGE_PATH', 'private/notes');
-        $filePath = "{$storagePath}/{$uuid}.pdf";
-
         // Check for duplicates via hash
         $fileContents = file_get_contents($file->getRealPath());
         $fileHash = hash('sha256', $fileContents);
@@ -58,7 +56,10 @@ class AdminNoteController extends Controller
             return $this->error('A note with identical content already exists: ' . $duplicate->title, 'duplicate_file', 409);
         }
 
-        // Store file
+        // Generate UUID filename & store file
+        $uuid = Str::uuid()->toString();
+        $storagePath = env('NOTES_STORAGE_PATH', 'private/notes');
+        $filePath = "{$storagePath}/{$uuid}.pdf";
         Storage::disk('local')->put($filePath, $fileContents);
 
         // Try to get page count via pdfinfo
@@ -75,11 +76,18 @@ class AdminNoteController extends Controller
         $title = $request->title ?? pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $slug = Str::slug($title) . '-' . substr($uuid, 0, 8);
 
+        // Build comma-separated category_id from category_ids[] or single category_id
+        $categoryIds = $request->category_ids ?? [];
+        if (empty($categoryIds) && $request->category_id) {
+            $categoryIds = [$request->category_id];
+        }
+        $categoryIdStr = !empty($categoryIds) ? implode(',', $categoryIds) : null;
+
         $note = Note::create([
             'title'       => $title,
             'slug'        => $slug,
             'description' => $request->description,
-            'category_id' => $request->category_id,
+            'category_id' => $categoryIdStr,
             'subject_id'  => $request->subject_id,
             'file_name'   => $file->getClientOriginalName(),
             'file_path'   => $filePath,
@@ -92,12 +100,17 @@ class AdminNoteController extends Controller
             'published_at'=> ($request->status === 'published') ? now() : null,
         ]);
 
-        return $this->created($note->load('category', 'subject', 'uploader'), 'Note uploaded successfully');
+        // Send email to students in selected categories if note is published
+        if ($request->status === 'published' && !empty($categoryIds)) {
+            $this->sendNoteNotificationEmails($note, $categoryIds);
+        }
+
+        return $this->created($note->load('subject', 'uploader'), 'Note uploaded successfully');
     }
 
     public function show(int $id): JsonResponse
     {
-        $note = Note::with('category', 'subject', 'uploader')->findOrFail($id);
+        $note = Note::with('subject', 'uploader')->findOrFail($id);
         return $this->success($note);
     }
 
@@ -105,6 +118,14 @@ class AdminNoteController extends Controller
     {
         $note = Note::findOrFail($id);
         $data = $request->validated();
+
+        $wasPublished = $note->status === 'published';
+
+        // Handle category_ids array → comma-separated string
+        if (isset($data['category_ids'])) {
+            $data['category_id'] = !empty($data['category_ids']) ? implode(',', $data['category_ids']) : null;
+            unset($data['category_ids']);
+        }
 
         if (isset($data['status']) && $data['status'] === 'published' && $note->status === 'draft') {
             $data['published_at'] = now();
@@ -115,7 +136,16 @@ class AdminNoteController extends Controller
         }
 
         $note->update($data);
-        return $this->success($note->fresh('category', 'subject', 'uploader'), 'Note updated');
+
+        // Send email to students if note is being published for the first time
+        if (!$wasPublished && $note->status === 'published') {
+            $categoryIds = $note->getCategoryIdsArray();
+            if (!empty($categoryIds)) {
+                $this->sendNoteNotificationEmails($note, $categoryIds);
+            }
+        }
+
+        return $this->success($note->fresh('subject', 'uploader'), 'Note updated');
     }
 
     public function destroy(int $id): JsonResponse
@@ -136,8 +166,36 @@ class AdminNoteController extends Controller
             'published_at' => $status === 'published' ? now() : $note->published_at,
         ]);
 
+        // Send email notifications when publishing a note
+        if ($status === 'published') {
+            $categoryIds = $note->getCategoryIdsArray();
+            if (!empty($categoryIds)) {
+                $this->sendNoteNotificationEmails($note, $categoryIds);
+            }
+        }
+
         return $this->success($note, "Note status changed to {$status}");
     }
+
+    /**
+     * Send note notification emails to students in the selected categories
+     */
+    private function sendNoteNotificationEmails(Note $note, array $categoryIds): void
+    {
+        // Find all active students whose course_id matches any of the selected categories
+        $students = User::students()
+            ->active()
+            ->whereHas('profile', function ($query) use ($categoryIds) {
+                $query->whereIn('course_id', $categoryIds);
+            })
+            ->get();
+
+        // Send email to each student
+        foreach ($students as $student) {
+            Mail::to($student->email)->queue(new NoteMail($note));
+        }
+    }
+
     public function view($id)
     {
         $note = Note::findOrFail($id);
