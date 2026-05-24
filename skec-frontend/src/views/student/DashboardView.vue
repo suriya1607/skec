@@ -23,7 +23,7 @@
         <span v-else class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full" :style="{ background: cat.color }" />
           {{ cat.name }}
-          <span class="text-xs opacity-70">({{ cat.published_notes_count ?? '' }})</span>
+          <span class="text-xs opacity-70">({{ cat.notes_count ?? '' }})</span>
         </span>
       </button>
     </div>

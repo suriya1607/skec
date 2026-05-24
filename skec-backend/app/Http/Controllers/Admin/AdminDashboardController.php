@@ -23,7 +23,7 @@ class AdminDashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->count();
 
-        $recentUploads = Note::with('category', 'uploader')
+        $recentUploads = Note::with('uploader')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

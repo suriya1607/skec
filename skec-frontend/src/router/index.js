@@ -18,6 +18,18 @@ const router = createRouter({
       component: () => import('../views/public/ContactView.vue'),
       meta: { layout: 'PublicLayout', requiresAuth: false },
     },
+    {
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      component: () => import('../views/PrivacyPolicy.vue'),
+      meta: { layout: 'PublicLayout', requiresAuth: false },
+    },
+    {
+      path: '/terms-and-conditions',
+      name: 'terms-and-conditions',
+      component: () => import('../views/TermsAndConditions.vue'),
+      meta: { layout: 'PublicLayout', requiresAuth: false },
+    },
     
     // ── Public / Auth ──────────────────────────────────────────
     {

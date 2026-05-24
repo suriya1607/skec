@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UploadNoteRequest;
 use App\Http\Requests\UpdateNoteRequest;
+use App\Mail\NoteMail;
 use App\Models\Note;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Response;
@@ -97,6 +100,11 @@ class AdminNoteController extends Controller
             'published_at'=> ($request->status === 'published') ? now() : null,
         ]);
 
+        // Send email to students in selected categories if note is published
+        if ($request->status === 'published' && !empty($categoryIds)) {
+            $this->sendNoteNotificationEmails($note, $categoryIds);
+        }
+
         return $this->created($note->load('subject', 'uploader'), 'Note uploaded successfully');
     }
 
@@ -110,6 +118,8 @@ class AdminNoteController extends Controller
     {
         $note = Note::findOrFail($id);
         $data = $request->validated();
+
+        $wasPublished = $note->status === 'published';
 
         // Handle category_ids array → comma-separated string
         if (isset($data['category_ids'])) {
@@ -126,6 +136,15 @@ class AdminNoteController extends Controller
         }
 
         $note->update($data);
+
+        // Send email to students if note is being published for the first time
+        if (!$wasPublished && $note->status === 'published') {
+            $categoryIds = $note->getCategoryIdsArray();
+            if (!empty($categoryIds)) {
+                $this->sendNoteNotificationEmails($note, $categoryIds);
+            }
+        }
+
         return $this->success($note->fresh('subject', 'uploader'), 'Note updated');
     }
 
@@ -147,8 +166,36 @@ class AdminNoteController extends Controller
             'published_at' => $status === 'published' ? now() : $note->published_at,
         ]);
 
+        // Send email notifications when publishing a note
+        if ($status === 'published') {
+            $categoryIds = $note->getCategoryIdsArray();
+            if (!empty($categoryIds)) {
+                $this->sendNoteNotificationEmails($note, $categoryIds);
+            }
+        }
+
         return $this->success($note, "Note status changed to {$status}");
     }
+
+    /**
+     * Send note notification emails to students in the selected categories
+     */
+    private function sendNoteNotificationEmails(Note $note, array $categoryIds): void
+    {
+        // Find all active students whose course_id matches any of the selected categories
+        $students = User::students()
+            ->active()
+            ->whereHas('profile', function ($query) use ($categoryIds) {
+                $query->whereIn('course_id', $categoryIds);
+            })
+            ->get();
+
+        // Send email to each student
+        foreach ($students as $student) {
+            Mail::to($student->email)->queue(new NoteMail($note));
+        }
+    }
+
     public function view($id)
     {
         $note = Note::findOrFail($id);
