@@ -26,13 +26,13 @@ class NoteController extends Controller
         $isstudent = auth()->user();
         $student_course_id = $isstudent->profile->course_id;
 
-        $query = Note::with('category', 'subject', 'uploader')
-            ->where('category_id', $student_course_id)
+        $query = Note::with('subject', 'uploader')
+            ->hasCategory($student_course_id)
             ->published()
             ->orderBy('published_at', 'desc');
 
         if ($request->has('category_id')) {
-            $query->where('category_id', $request->category_id);
+            $query->hasCategory($request->category_id);
         }
 
         if ($request->has('subject_id')) {

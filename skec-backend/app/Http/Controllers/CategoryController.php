@@ -16,9 +16,9 @@ class CategoryController extends Controller
     public function indexPublic(): JsonResponse
     {
         $categories = NoteCategory::active()
-            ->withCount(['notes' => fn($q) => $q->published()])
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->each(fn($c) => $c->append('published_notes_count'));
 
         return $this->success($categories);
     }
@@ -26,9 +26,10 @@ class CategoryController extends Controller
     // Admin: all categories
     public function index(): JsonResponse
     {
-        $categories = NoteCategory::withCount('notes')
+        $categories = NoteCategory::query()
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->each(fn($c) => $c->append('notes_count'));
 
         return $this->success($categories);
     }
@@ -51,5 +52,18 @@ class CategoryController extends Controller
         $category = NoteCategory::findOrFail($id);
         $category->delete();
         return $this->noContent();
+    }
+
+    public function StudentCategories(): JsonResponse
+    {
+        $isstudent = auth()->user();
+        $student_course_id = $isstudent->profile->course_id;
+        $categories = NoteCategory::query()
+            ->where('id', $student_course_id)
+            ->orderBy('sort_order')
+            ->get()
+            ->each(fn($c) => $c->append('notes_count'));
+
+        return $this->success($categories);
     }
 }

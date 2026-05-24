@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Middleware\EnsureAdmin;
@@ -32,6 +33,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories', [CategoryController::class, 'indexPublic']);
     Route::get('/subjects', [SubjectController::class, 'indexPublic']);
 
+    // Contact
+    Route::post('/contact', [ContactController::class, 'sendMessage']);
+
     // ─── AUTHENTICATED ROUTES ───────────────────────────────────────────────
     Route::middleware(['auth:sanctum', EnsureValidSession::class, EnsureUserActive::class])->group(function () {
 
@@ -44,6 +48,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/notes', [NoteController::class, 'index']);
         Route::get('/notes/{id}/stream-token', [NoteController::class, 'getStreamToken']);
         Route::post('/notes/{id}/log', [NoteController::class, 'logAccess']);
+        Route::get('student/categories', [CategoryController::class, 'StudentCategories']);
 
         // ─── ADMIN ROUTES ──────────────────────────────────────────────────
         Route::middleware(EnsureAdmin::class)->prefix('admin')->group(function () {

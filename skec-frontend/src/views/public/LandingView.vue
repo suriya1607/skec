@@ -38,6 +38,11 @@
             :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
             class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
           >{{ link.label }}</a>
+          <RouterLink
+            to="/contact"
+            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+          >Contact</RouterLink>
         </div>
 
         <!-- CTA + mobile menu -->
@@ -69,6 +74,11 @@
             @click="mobileNavOpen = false"
             class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
           >{{ link.label }}</a>
+          <RouterLink
+            to="/contact"
+            @click="mobileNavOpen = false"
+            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+          >Contact</RouterLink>
         </div>
       </Transition>
     </nav>
@@ -525,12 +535,12 @@
           {{ settings.cta_description || 'Join hundreds of students achieving their academic goals.' }}
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-          <a
-            :href="'mailto:' + (settings.contact_email || 'admin@srikumaran.in')"
-            class="px-6 py-3.5 bg-primary-700 text-white rounded-xl font-bold text-sm hover:bg-primary-800 transition shadow-md"
+          <RouterLink
+            to="/contact"
+            class="px-6 py-3.5 rounded-xl bg-white text-primary-900 font-bold text-sm hover:bg-primary-50 transition shadow-lg"
           >
-            {{ settings.cta_primary_label || 'Contact Us' }}
-          </a>
+            Contact Us →
+          </RouterLink>
           <RouterLink
             to="/login"
             class="px-6 py-3.5 border-2 border-primary-700 text-primary-700 rounded-xl font-bold text-sm hover:bg-primary-50 transition"
@@ -599,7 +609,7 @@ function onScroll() { scrolled.value = window.scrollY > 40 }
 
 // ── Rank Holder Carousel ───────────────────────────────────────────────
 const currentSlide   = ref(0)
-const slidesPerView  = ref(3)
+const slidesPerView  = ref(5)
 const carouselTrack  = ref(null)
 let sliderTimer      = null
 let sliderPaused     = false
@@ -632,7 +642,7 @@ function goToSlide(i) { currentSlide.value = i }
 
 function updateSlidesPerView() {
   const w = window.innerWidth
-  slidesPerView.value = w < 640 ? 1 : w < 1024 ? 2 : 3
+  slidesPerView.value = w < 640 ? 1 : w < 1024 ? 2 : 4
 }
 
 function startSliderTimer() {

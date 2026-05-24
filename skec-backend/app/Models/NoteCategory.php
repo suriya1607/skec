@@ -21,10 +21,15 @@ class NoteCategory extends Model
         'sort_order' => 'integer',
     ];
 
-    // Relationships
-    public function notes()
+    // Get notes that include this category in their comma-separated category_id
+    public function getNotesCountAttribute(): int
     {
-        return $this->hasMany(Note::class, 'category_id');
+        return Note::hasCategory($this->id)->count();
+    }
+
+    public function getPublishedNotesCountAttribute(): int
+    {
+        return Note::hasCategory($this->id)->published()->count();
     }
 
     // Scopes

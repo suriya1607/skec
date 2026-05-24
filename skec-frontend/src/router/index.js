@@ -12,6 +12,12 @@ const router = createRouter({
       component: () => import('../views/public/LandingView.vue'),
       meta: { layout: 'PublicLayout', requiresAuth: false },
     },
+    {
+      path: '/contact',
+      name: 'contact',
+      component: () => import('../views/public/ContactView.vue'),
+      meta: { layout: 'PublicLayout', requiresAuth: false },
+    },
     
     // ── Public / Auth ──────────────────────────────────────────
     {
