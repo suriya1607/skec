@@ -136,8 +136,8 @@
                 </svg>
               </div>
               <h3 class="font-bold text-gray-900 text-base mb-2">Location</h3>
-              <p v-if="settings.contact_address" class="text-gray-600 text-sm leading-relaxed">
-                {{ settings.contact_address }}
+              <p v-if="settings.address" class="text-gray-600 text-sm leading-relaxed">
+                {{ settings.address }}
               </p>
               <p v-else class="text-gray-600 text-sm leading-relaxed">
                 Sri Kumaran Education Centre<br />
@@ -153,9 +153,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 class="font-bold text-gray-900 text-base mb-2">Business Hours</h3>
+              <h3 class="font-bold text-gray-900 text-base mb-2">Institute Hours</h3>
               <div class="text-gray-600 text-sm space-y-1">
-                <p>Mon - Fri: 9:00 AM - 6:00 PM</p>
+                <p>Mon - Fri: 9:00 AM - 9:00 PM</p>
                 <p>Sat: 9:00 AM - 2:00 PM</p>
                 <p>Sun: Closed</p>
               </div>
