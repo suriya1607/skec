@@ -39,9 +39,9 @@
 
         <AppMultiSelect
           v-model="form.category_ids"
-          label="Categories"
+          label="Batch"
           :options="categoryOptions"
-          placeholder="Select categories…"
+          placeholder="Select batch"
           :error="fieldErrors.category_ids"
         />
 

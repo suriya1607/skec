@@ -11,4 +11,7 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data, data instanceof FormData
     ? { headers: { 'Content-Type': 'multipart/form-data' } }
     : undefined),
+  publicRegister: (data) => api.post('/auth/register-public', data, data instanceof FormData
+    ? { headers: { 'Content-Type': 'multipart/form-data' } }
+    : undefined),
 }

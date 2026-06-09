@@ -41,4 +41,27 @@ class NoteStreamService
             'X-Frame-Options' => 'SAMEORIGIN',
         ]);
     }
+
+    /**
+     * Public stream for free notes — served inline for browser PDF viewer, no watermark.
+     */
+    public function streamNoteFree(Note $note): StreamedResponse
+    {
+        $filePath = $note->file_path;
+
+        abort_unless(Storage::disk('local')->exists($filePath), 404, 'File not found.');
+
+        $fileContent = Storage::disk('local')->get($filePath);
+        $fileSize = Storage::disk('local')->size($filePath);
+
+        return response()->stream(function () use ($fileContent) {
+            echo $fileContent;
+        }, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Length'      => $fileSize,
+            'Content-Disposition' => 'inline; filename="' . $note->file_name . '"',
+            'Cache-Control'       => 'public, max-age=300',
+            'X-Frame-Options'     => 'SAMEORIGIN',
+        ]);
+    }
 }

@@ -59,11 +59,21 @@ class NoteController extends Controller
 
         $signedUrl = $this->streamService->generateStreamToken($note, $user);
 
+        // Check if any of the note's categories has open_in_browser enabled
+        $categoryIds = $note->getCategoryIdsArray();
+        $openInBrowser = false;
+        if (!empty($categoryIds)) {
+            $openInBrowser = \App\Models\NoteCategory::whereIn('id', $categoryIds)
+                ->where('open_in_browser', true)
+                ->exists();
+        }
+
         return $this->success([
-            'stream_url' => $signedUrl,
-            'note_id' => $note->id,
-            'title' => $note->title,
-            'total_pages' => $note->total_pages,
+            'stream_url'      => $signedUrl,
+            'note_id'         => $note->id,
+            'title'           => $note->title,
+            'total_pages'     => $note->total_pages,
+            'open_in_browser' => $openInBrowser,
         ]);
     }
 
@@ -128,5 +138,29 @@ class NoteController extends Controller
         ]);
 
         return $this->success(null, 'Access logged');
+    }
+
+    /**
+     * Public stream for free-batch notes (no authentication required).
+     * Verifies the note belongs to a batch marked is_free before serving.
+     */
+    public function streamFree(Request $request, int $id): mixed
+    {
+        $note = Note::published()->findOrFail($id);
+
+        // Ensure the note belongs to at least one free batch
+        $categoryIds = $note->getCategoryIdsArray();
+        $isFree = !empty($categoryIds) && \App\Models\NoteCategory::whereIn('id', $categoryIds)
+            ->where('is_free', true)
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$isFree) {
+            abort(403, 'This note is not publicly accessible.');
+        }
+
+        $note->increment('view_count');
+
+        return $this->streamService->streamNoteFree($note);
     }
 }

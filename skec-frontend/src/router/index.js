@@ -19,6 +19,12 @@ const router = createRouter({
       meta: { layout: 'PublicLayout', requiresAuth: false },
     },
     {
+      path: '/free-notes',
+      name: 'free-notes',
+      component: () => import('../views/public/FreeNotesView.vue'),
+      meta: { layout: 'BlankLayout', requiresAuth: false },
+    },
+    {
       path: '/privacy-policy',
       name: 'privacy-policy',
       component: () => import('../views/PrivacyPolicy.vue'),
@@ -30,7 +36,7 @@ const router = createRouter({
       component: () => import('../views/TermsAndConditions.vue'),
       meta: { layout: 'PublicLayout', requiresAuth: false },
     },
-    
+
     // ── Public / Auth ──────────────────────────────────────────
     {
       path: '/login',
@@ -87,7 +93,7 @@ const router = createRouter({
       meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
     },
     {
-      path: '/admin/categories',
+      path: '/admin/batch',
       name: 'admin.categories',
       component: () => import('../views/admin/CategoriesView.vue'),
       meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },

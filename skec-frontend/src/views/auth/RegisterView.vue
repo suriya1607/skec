@@ -52,10 +52,10 @@
             />
             <AppInput
               id="reg-email"
-              :model-value="invitation?.email"
+              v-model="form.email"
               label="Email address"
               type="email"
-              disabled
+              :disabled="!!invitation.email"
             />
             <AppInput
               id="reg-no"
@@ -230,6 +230,7 @@ const form = reactive({
   medium_of_studying: '',
   password: '',
   password_confirmation: '',
+  email: '',
 })
 
 const genderOptions = [
@@ -251,13 +252,20 @@ const expiresFormatted = computed(() =>
 
 onMounted(async () => {
   const token = route.query.token
-  if (!token) { router.replace('/invitation-expired'); return }
-  try {
-    const res = await authApi.validateInvitation(token)
-    invitation.value = res.data.data
-  } catch {
-    router.replace('/invitation-expired')
-    return
+  if (!token) { router.replace('/register'); }
+
+  if(token)
+  {
+    try {
+      const res = await authApi.validateInvitation(token)
+      invitation.value = res.data.data
+      form.email = invitation.value.email
+    } catch {
+      router.replace('/invitation-expired')
+      return
+    }
+  }else{
+    invitation.value = true
   }
 
   try {
@@ -287,7 +295,13 @@ async function handleRegister() {
       if (value !== null && value !== undefined) data.append(key, value)
     })
 
-    const res = await authApi.register(data)
+    let res
+    if(route.query.token){
+      res = await authApi.register(data)
+    }else{
+      res = await authApi.publicRegister(data)
+    }
+    
     const { user, token, session_token, settings } = res.data.data
     authStore.setFromRegister(user, token, session_token)
     if (settings) settingsStore.setFromLogin(settings)

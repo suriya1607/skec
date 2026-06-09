@@ -39,10 +39,20 @@
             class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
           >{{ link.label }}</a>
           <RouterLink
+            to="/free-notes"
+            :class="scrolled ? 'text-green-700 hover:text-green-800' : 'text-green-300 hover:text-white'"
+            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+          >Free Notes</RouterLink>
+          <RouterLink
             to="/contact"
             :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
             class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
           >Contact</RouterLink>
+          <RouterLink
+            to="/register"
+            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+          >Register</RouterLink>
         </div>
 
         <!-- CTA + mobile menu -->
@@ -74,6 +84,11 @@
             @click="mobileNavOpen = false"
             class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
           >{{ link.label }}</a>
+          <RouterLink
+            to="/free-notes"
+            @click="mobileNavOpen = false"
+            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-green-700 hover:bg-green-50"
+          >Free Notes</RouterLink>
           <RouterLink
             to="/contact"
             @click="mobileNavOpen = false"
@@ -837,7 +852,6 @@ onMounted(async () => {
     const res = await settingsApi.getPublic()
     settings.value = res.data.data || {}
   } catch {}
-  console.log('Public settings loaded:', settings.value);
   startSliderTimer()
 })
 

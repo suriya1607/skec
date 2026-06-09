@@ -26,12 +26,15 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
         Route::get('/invitation/{token}', [AuthController::class, 'validateInvitation']);
         Route::post('/register', [AuthController::class, 'registerFromInvitation']);
+        Route::post('/register-public', [AuthController::class, 'publicRegister']);
     });
 
     // Public settings & landing data
     Route::get('/settings/public', [SettingsController::class, 'public']);
     Route::get('/categories', [CategoryController::class, 'indexPublic']);
     Route::get('/subjects', [SubjectController::class, 'indexPublic']);
+    Route::get('/free-notes', [CategoryController::class, 'freeNotes']);
+    Route::get('/free-notes/{id}/stream', [NoteController::class, 'streamFree'])->name('notes.stream-free');
 
     // Contact
     Route::post('/contact', [ContactController::class, 'sendMessage']);

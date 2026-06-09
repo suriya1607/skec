@@ -6,6 +6,7 @@ use App\Exceptions\InvitationExpiredException;
 use App\Exceptions\InvitationNotFoundException;
 use App\Exceptions\InvitationUsedException;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\PublicRegisterRequest;
 use App\Http\Requests\RegisterFromInviteRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
@@ -27,7 +28,8 @@ class AuthController extends Controller
         private InvitationService $invitationService,
         private SessionService $sessionService,
         private SettingService $settingService
-    ) {}
+    ) {
+    }
 
     public function login(LoginRequest $request): JsonResponse
     {
@@ -57,11 +59,11 @@ class AuthController extends Controller
         ]);
 
         return $this->success([
-            'user'          => $user,
-            'token'         => $sanctumToken,
+            'user' => $user,
+            'token' => $sanctumToken,
             'session_token' => $rawSessionToken,
-            'expires_at'    => now()->addMinutes(60)->toIso8601String(),
-            'settings'      => $this->settingService->getPublicSettings(),
+            'expires_at' => now()->addMinutes(60)->toIso8601String(),
+            'settings' => $this->settingService->getPublicSettings(),
         ], 'Login successful');
     }
 
@@ -70,9 +72,9 @@ class AuthController extends Controller
         try {
             $invitation = $this->invitationService->validate($token);
             return $this->success([
-                'email'      => $invitation->email,
+                'email' => $invitation->email,
                 'expires_at' => $invitation->expires_at,
-                'valid'      => true,
+                'valid' => true,
             ], 'Invitation is valid');
         } catch (InvitationExpiredException $e) {
             return $this->error($e->getMessage(), 'invitation_expired', 410);
@@ -97,11 +99,11 @@ class AuthController extends Controller
 
         $user = DB::transaction(function () use ($request, $invitation) {
             $user = User::create([
-                'name'     => $request->name,
-                'email'    => $invitation->email,
+                'name' => $request->name,
+                'email' => $invitation->email,
                 'password' => Hash::make($request->password),
-                'role'     => 'student',
-                'status'   => 'inactive',
+                'role' => 'student',
+                'status' => 'inactive',
             ]);
 
             $user->profile()->create($request->safe()->only([
@@ -126,7 +128,7 @@ class AuthController extends Controller
 
         // Auto-login
         $this->sessionService->terminateOldestIfExceeded($user);
-        $sanctumToken    = $user->createToken('auth_token')->plainTextToken;
+        $sanctumToken = $user->createToken('auth_token')->plainTextToken;
         $rawSessionToken = $this->sessionService->createSession($user, $request);
 
         $user->update([
@@ -134,10 +136,49 @@ class AuthController extends Controller
             'last_login_ip' => $request->ip(),
         ]);
 
-    return $this->created([
-        'redirect' => env('FRONTEND_URL') . '/login',
-        'message'  => 'Registration successful. Contact administrator to activate your account.',
-    ], 'Registration successful');
+        return $this->created([
+            'redirect' => env('FRONTEND_URL') . '/login',
+            'message' => 'Registration successful. Contact administrator to activate your account.',
+        ], 'Registration successful');
+    }
+
+    /**
+     * Public self-registration — no invitation required.
+     * Account starts as inactive; admin must activate it.
+     */
+    public function publicRegister(PublicRegisterRequest $request): JsonResponse
+    {
+        $user = DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'student',
+                'status' => 'inactive',
+            ]);
+
+            $user->profile()->create($request->safe()->only([
+                'reg_no',
+                'father_name',
+                'dob',
+                'gender',
+                'address',
+                'community_category',
+                'contact_phone',
+                'qualification',
+                'course_id',
+                'medium_of_studying',
+            ]));
+
+            $user->addMediaFromRequest('photo')->toMediaCollection('student_photo');
+
+            return $user;
+        });
+
+        return $this->created([
+            'redirect' => env('FRONTEND_URL') . '/login',
+            'message' => 'Registration successful. Contact administrator to activate your account.',
+        ], 'Registration successful');
     }
 
     public function logout(Request $request): JsonResponse
@@ -155,11 +196,11 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user     = $request->user()->load('profile.course');
+        $user = $request->user()->load('profile.course');
         $sessions = $this->sessionService->getActiveSessions($user);
 
         return $this->success([
-            'user'            => $user,
+            'user' => $user,
             'active_sessions' => $sessions->count(),
         ]);
     }

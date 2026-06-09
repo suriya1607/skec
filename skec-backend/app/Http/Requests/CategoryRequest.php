@@ -13,13 +13,15 @@ class CategoryRequest extends FormRequest
         $categoryId = $this->route('id');
 
         return [
-            'name'        => ['required', 'string', 'max:255'],
-            'slug'        => ['required', 'string', 'max:255', "unique:note_categories,slug,{$categoryId}"],
-            'description' => ['nullable', 'string'],
-            'color'       => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'icon'        => ['nullable', 'string', 'max:100'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
-            'is_active'   => ['nullable', 'boolean'],
+            'name'            => ['required', 'string', 'max:255'],
+            'slug'            => ['required', 'string', 'max:255', "unique:note_categories,slug,{$categoryId}"],
+            'description'     => ['nullable', 'string'],
+            'color'           => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'icon'            => ['nullable', 'string', 'max:100'],
+            'sort_order'      => ['nullable', 'integer', 'min:0'],
+            'is_active'       => ['nullable', 'boolean'],
+            'open_in_browser' => ['nullable', 'boolean'],
+            'is_free'         => ['nullable', 'boolean'],
         ];
     }
 }

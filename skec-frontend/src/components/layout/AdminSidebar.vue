@@ -109,7 +109,7 @@ const navItems = [
   { name: 'dashboard',   label: 'Dashboard',      to: '/admin/dashboard',   icon: HomeIcon },
   { name: 'students',    label: 'Students',        to: '/admin/students',    icon: UsersIcon },
   { name: 'notes',       label: 'Notes',           to: '/admin/notes',       icon: DocumentTextIcon },
-  { name: 'categories',  label: 'Categories',      to: '/admin/categories',  icon: TagIcon },
+  { name: 'categories',  label: 'Batch',      to: '/admin/batch',  icon: TagIcon },
   { name: 'subjects',    label: 'Subjects',         to: '/admin/subjects',    icon: BookOpenIcon },
   { name: 'invitations', label: 'Invitations',     to: '/admin/invitations', icon: EnvelopeIcon },
   { name: 'sessions',    label: 'Sessions',        to: '/admin/sessions',    icon: ComputerDesktopIcon },

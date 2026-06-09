@@ -66,4 +66,46 @@ class CategoryController extends Controller
 
         return $this->success($categories);
     }
+
+    /**
+     * Public: return published notes for all batches marked as is_free.
+     * No authentication required.
+     */
+    public function freeNotes(): JsonResponse
+    {
+        // Get IDs of free batches
+        $freeCategoryIds = NoteCategory::where('is_free', true)
+            ->where('is_active', true)
+            ->pluck('id');
+
+        if ($freeCategoryIds->isEmpty()) {
+            return $this->success([]);
+        }
+
+        $notes = \App\Models\Note::with('subject')
+            ->published()
+            ->where(function ($q) use ($freeCategoryIds) {
+                foreach ($freeCategoryIds as $id) {
+                    $q->orWhereRaw('FIND_IN_SET(?, category_id)', [$id]);
+                }
+            })
+            ->orderBy('published_at', 'desc')
+            ->get()
+            ->map(fn($note) => [
+                'id' => $note->id,
+                'title' => $note->title,
+                'description' => $note->description,
+                'total_pages' => $note->total_pages,
+                'file_size_formatted' => $note->file_size_formatted,
+                'published_at' => $note->published_at,
+                'subject' => $note->subject ? ['name' => $note->subject->name] : null,
+                'categories' => $note->categories->map(fn($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'color' => $c->color,
+                ]),
+            ]);
+
+        return $this->success($notes);
+    }
 }

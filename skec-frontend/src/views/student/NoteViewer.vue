@@ -95,7 +95,18 @@ function restoreScreenCaptureApi() {
 onMounted(async () => {
   try {
     const res = await notesApi.streamToken(noteId.value)
-    streamUrl.value = res.data.data.stream_url
+    const data = res.data.data
+
+    // If the category has "open in browser" enabled → open in native PDF viewer
+    if (data.open_in_browser) {
+      // Open the PDF in a new browser tab using the signed stream URL
+      window.open(data.stream_url, '_blank')
+      // Navigate student back to notes list (don't leave a blank custom viewer page)
+      router.replace('/notes')
+      return
+    }
+
+    streamUrl.value = data.stream_url
 
     // Log opened
     await notesApi.logAccess(noteId.value, { action: 'opened' })

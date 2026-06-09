@@ -14,11 +14,15 @@ class NoteCategory extends Model
         'icon',
         'sort_order',
         'is_active',
+        'open_in_browser',
+        'is_free',
     ];
 
     protected $casts = [
-        'is_active'  => 'boolean',
-        'sort_order' => 'integer',
+        'is_active'       => 'boolean',
+        'sort_order'      => 'integer',
+        'open_in_browser' => 'boolean',
+        'is_free'         => 'boolean',
     ];
 
     // Get notes that include this category in their comma-separated category_id
