@@ -69,9 +69,18 @@
       <div
         v-for="note in notes"
         :key="note.id"
-        class="card hover:shadow-md transition-shadow group cursor-pointer"
+        class="card hover:shadow-md transition-shadow group cursor-pointer relative"
         @click="openNote(note)"
       >
+        <!-- NEW badge — shown when there's an unread notification for this note -->
+        <span
+          v-if="isNewNote(note.id)"
+          class="absolute -top-2 -right-2 inline-flex items-center gap-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md z-10"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          NEW
+        </span>
+
         <!-- Category badges -->
         <div class="flex items-center justify-between mb-3">
           <div v-if="note.categories && note.categories.length" class="flex flex-wrap gap-1">
@@ -115,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter }   from 'vue-router'
 import { notesApi }    from '../../api/student/notes'
 import { debounce }    from '../../utils/helpers'
@@ -124,16 +133,31 @@ import AppInput      from '../../components/common/AppInput.vue'
 import AppButton     from '../../components/common/AppButton.vue'
 import AppEmptyState from '../../components/common/AppEmptyState.vue'
 import AppPagination from '../../components/common/AppPagination.vue'
+import { useNotificationsStore } from '../../stores/notifications'
 
-const router     = useRouter()
-const loading    = ref(false)
-const notes      = ref([])
-const categories = ref([])
-const subjects   = ref([])
-const meta       = ref(null)
-const search     = ref('')
+const router        = useRouter()
+const notifStore    = useNotificationsStore()
+const loading       = ref(false)
+const notes         = ref([])
+const categories    = ref([])
+const subjects      = ref([])
+const meta          = ref(null)
+const search        = ref('')
 const selectedCategoryId = ref(null)
 const selectedSubjectId  = ref(null)
+
+// Set of note IDs that have an unread notification for this student
+const unreadNoteIds = computed(() =>
+  new Set(
+    notifStore.notifications
+      .filter((n) => !n.is_read && n.note?.id)
+      .map((n) => n.note.id)
+  )
+)
+
+function isNewNote(noteId) {
+  return unreadNoteIds.value.has(noteId)
+}
 
 function selectCategory(cat) {
   selectedCategoryId.value = typeof cat === 'string' ? null : cat.id
@@ -171,12 +195,23 @@ async function fetchNotes(p = 1) {
 
 const debouncedFetch = debounce(() => fetchNotes(1), 300)
 
-function openNote(note) {
+async function openNote(note) {
+  // Mark notification as read if unread
+  const notif = notifStore.notifications.find(
+    (n) => !n.is_read && n.note?.id === note.id
+  )
+  if (notif) {
+    await notifStore.markRead(notif.id)
+  }
   router.push(`/notes/${note.id}/view`)
 }
 
 onMounted(async () => {
   fetchNotes()
+  // Load notifications so we can show NEW badges (if not already loaded by the store)
+  if (notifStore.notifications.length === 0) {
+    notifStore.fetchNotifications()
+  }
   const [catRes, subRes] = await Promise.all([
     notesApi.studentCategories(),
     notesApi.subjects(),

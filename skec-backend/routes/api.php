@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Middleware\EnsureAdmin;
@@ -52,6 +53,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/notes/{id}/stream-token', [NoteController::class, 'getStreamToken']);
         Route::post('/notes/{id}/log', [NoteController::class, 'logAccess']);
         Route::get('student/categories', [CategoryController::class, 'StudentCategories']);
+
+        // Notifications (student in-app)
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
 
         // ─── ADMIN ROUTES ──────────────────────────────────────────────────
         Route::middleware(EnsureAdmin::class)->prefix('admin')->group(function () {

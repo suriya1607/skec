@@ -28,8 +28,43 @@
           </RouterLink>
         </nav>
 
-        <!-- User + Logout -->
+        <!-- User + Notification Bell + Logout -->
         <div class="flex items-center gap-2 sm:gap-3">
+
+          <!-- ── Bell button with red badge ── -->
+          <div class="relative" ref="bellRef">
+            <button
+              id="notification-bell-btn"
+              type="button"
+              class="relative inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:bg-primary-50 hover:text-primary-700 transition-colors focus:outline-none"
+              :title="notifStore.unreadCount > 0 ? `${notifStore.unreadCount} unread notification(s)` : 'Notifications'"
+              @click="togglePanel"
+            >
+              <BellIcon class="w-5 h-5" />
+              <!-- Red dot badge -->
+              <span
+                v-if="notifStore.unreadCount > 0"
+                class="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center"
+              >
+                <!-- Ping animation ring -->
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center">
+                  <span class="text-[9px] font-bold text-white leading-none">
+                    {{ notifStore.unreadCount > 9 ? '9+' : notifStore.unreadCount }}
+                  </span>
+                </span>
+              </span>
+            </button>
+
+            <!-- Notification panel dropdown -->
+            <NotificationPanel
+              :open="panelOpen"
+              :anchor-el="bellRef"
+              @close="panelOpen = false"
+            />
+          </div>
+
+          <!-- Avatar -->
           <img
             v-if="authStore.user?.photo_url"
             :src="authStore.user.photo_url"
@@ -39,6 +74,8 @@
           <div v-else class="hidden sm:flex w-9 h-9 rounded-full bg-primary-100 items-center justify-center">
             <span class="text-primary-700 font-bold text-sm">{{ authStore.userInitials }}</span>
           </div>
+
+          <!-- Logout -->
           <button
             type="button"
             class="inline-flex items-center justify-center rounded-lg p-2 text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors sm:px-3 sm:py-2"
@@ -56,16 +93,38 @@
 </template>
 
 <script setup>
-import { useRouter }        from 'vue-router'
-import { useAuthStore }     from '../../stores/auth'
-import { useSettingsStore } from '../../stores/settings'
-import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter }            from 'vue-router'
+import { useAuthStore }         from '../../stores/auth'
+import { useSettingsStore }     from '../../stores/settings'
+import { useNotificationsStore } from '../../stores/notifications'
+import { BellIcon, ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import NotificationPanel from '../common/NotificationPanel.vue'
 
 const authStore     = useAuthStore()
 const settingsStore = useSettingsStore()
+const notifStore    = useNotificationsStore()
 const router        = useRouter()
 
+const panelOpen = ref(false)
+const bellRef   = ref(null)
+
+function togglePanel(e) {
+  // Stop propagation so the click doesn't bubble to body and trigger close
+  e.stopPropagation()
+  panelOpen.value = !panelOpen.value
+}
+
+onMounted(() => {
+  notifStore.startPolling()
+})
+
+onBeforeUnmount(() => {
+  notifStore.stopPolling()
+})
+
 async function handleLogout() {
+  notifStore.stopPolling()
   await authStore.logout()
   router.push('/login')
 }
