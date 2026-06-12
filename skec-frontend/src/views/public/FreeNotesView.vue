@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-gray-50" style="font-family: 'Outfit', 'Inter', sans-serif;">
+  <div class="flex flex-col h-screen bg-gray-50" style="font-family: 'Outfit', 'Inter', sans-serif;">
 
     <!-- ── Compact Header ─────────────────────────────────────── -->
     <header class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
@@ -62,7 +62,7 @@
     </header>
 
     <!-- ── Notes Grid ──────────────────────────────────────── -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-12">
+    <main class="flex-1 overflow-y-auto max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-12">
 
       <!-- Loading skeleton -->
       <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -202,10 +202,10 @@
     </main>
 
     <!-- ── CTA footer strip ────────────────────────────────────── -->
-    <div class="bg-primary-700 text-white py-10">
-      <div class="max-w-3xl mx-auto px-4 text-center">
-        <p class="font-bold text-lg mb-1">Want access to all study materials?</p>
-        <p class="text-white/60 text-sm mb-5">Join SKEC and get full access to our complete library of notes and resources.</p>
+    <div class="bg-primary-700 text-white py-3">
+      <div class="max-w-3xl mx-auto px-4 flex items-center justify-between">
+        <!-- <p class="font-bold text-lg mb-1">Want access to all study materials?</p> -->
+        <span class="text-sm">Join SKEC and get full access to our complete library of notes and resources.</span>
         <RouterLink
           to="/contact"
           class="inline-block px-6 py-3 rounded-xl bg-white text-primary-900 font-bold text-sm hover:bg-primary-50 transition shadow-lg"
