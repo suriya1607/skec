@@ -69,9 +69,9 @@ class CategoryController extends Controller
 
     /**
      * Public: return published notes for all batches marked as is_free.
-     * No authentication required.
+     * No authentication required. Supports pagination + search.
      */
-    public function freeNotes(): JsonResponse
+    public function freeNotes(\Illuminate\Http\Request $request): JsonResponse
     {
         // Get IDs of free batches
         $freeCategoryIds = NoteCategory::where('is_free', true)
@@ -79,33 +79,41 @@ class CategoryController extends Controller
             ->pluck('id');
 
         if ($freeCategoryIds->isEmpty()) {
-            return $this->success([]);
+            return $this->paginatedResponse(
+                \App\Models\Note::whereRaw('0')->paginate(12)
+            );
         }
 
-        $notes = \App\Models\Note::with('subject')
+        $query = \App\Models\Note::with(['subject'])
             ->published()
-            ->where(function ($q) use ($freeCategoryIds) {
-                foreach ($freeCategoryIds as $id) {
-                    $q->orWhereRaw('FIND_IN_SET(?, category_id)', [$id]);
-                }
-            })
-            ->orderBy('published_at', 'desc')
-            ->get()
-            ->map(fn($note) => [
-                'id' => $note->id,
-                'title' => $note->title,
-                'description' => $note->description,
-                'total_pages' => $note->total_pages,
-                'file_size_formatted' => $note->file_size_formatted,
-                'published_at' => $note->published_at,
-                'subject' => $note->subject ? ['name' => $note->subject->name] : null,
-                'categories' => $note->categories->map(fn($c) => [
-                    'id' => $c->id,
-                    'name' => $c->name,
-                    'color' => $c->color,
-                ]),
-            ]);
+            ->orderBy('published_at', 'desc');
 
-        return $this->success($notes);
+        // Optional search
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(
+                fn($q) => $q
+                    ->where('title', 'like', "%{$s}%")
+                    ->orWhere('description', 'like', "%{$s}%")
+            );
+        }
+
+        $perPage = (int) $request->get('per_page', 12);
+        $paginator = $query->paginate($perPage);
+
+        // Transform items to keep the same shape the frontend expects
+        $transformed = $paginator->getCollection()->map(fn($note) => [
+            'id' => $note->id,
+            'title' => $note->title,
+            'description' => $note->description,
+            'total_pages' => $note->total_pages,
+            'file_size_formatted' => $note->file_size_formatted,
+            'published_at' => $note->published_at,
+            'subject' => $note->subject ? ['name' => $note->subject->name] : null,
+        ]);
+
+        $paginator->setCollection($transformed);
+
+        return $this->paginatedResponse($paginator);
     }
 }

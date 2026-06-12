@@ -9,6 +9,9 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'note_id',
+        'announcement_id',
+        'type',
+        'announcement_type',
         'message',
         'is_read',
         'read_at',
@@ -28,6 +31,11 @@ class Notification extends Model
     public function note()
     {
         return $this->belongsTo(Note::class);
+    }
+
+    public function announcement()
+    {
+        return $this->belongsTo(Announcement::class);
     }
 
     // Scopes

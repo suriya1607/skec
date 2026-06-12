@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccessLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminNoteController;
 use App\Http\Controllers\Admin\AdminStudentController;
+use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\SessionController;
@@ -118,6 +119,12 @@ Route::prefix('v1')->group(function () {
 
             // Access Logs
             Route::get('/logs', [AccessLogController::class, 'index']);
+
+            // Announcements
+            Route::get('/announcements', [AnnouncementController::class, 'index']);
+            Route::post('/announcements', [AnnouncementController::class, 'store']);
+            Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy']);
+            Route::post('/announcements/{id}/resend', [AnnouncementController::class, 'resend']);
         });
     });
 

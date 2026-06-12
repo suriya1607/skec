@@ -59,7 +59,7 @@
           </div>
 
           <!-- List -->
-          <ul v-else class="divide-y divide-gray-50 max-h-[360px] overflow-y-auto overscroll-contain">
+          <ul v-else class="divide-y divide-gray-50 max-h-[480px] overflow-y-auto overscroll-contain">
             <li
               v-for="notif in store.notifications"
               :key="notif.id"
@@ -69,23 +69,47 @@
                 : 'bg-red-50/40 hover:bg-red-50/70'"
               @click.stop="handleClick(notif)"
             >
-              <!-- Unread indicator dot -->
-              <div class="mt-1.5 flex-shrink-0">
+              <!-- Unread indicator dot — color matches announcement type -->
+              <div class="mt-2 flex-shrink-0">
                 <span
                   class="block w-2 h-2 rounded-full transition-colors"
-                  :class="notif.is_read ? 'bg-gray-200' : 'bg-red-500 animate-pulse'"
+                  :class="notif.is_read
+                    ? 'bg-gray-200'
+                    : notif.type === 'announcement'
+                      ? announcementDot(notif.announcement_type)
+                      : 'bg-red-500 animate-pulse'"
                 />
               </div>
 
               <!-- Content -->
               <div class="flex-1 min-w-0">
-                <p
-                  class="text-sm leading-snug line-clamp-2"
-                  :class="notif.is_read ? 'text-gray-500' : 'text-gray-800 font-medium'"
-                >
-                  {{ notif.message }}
-                </p>
-                <p class="text-[11px] text-gray-400 mt-0.5">{{ timeAgo(notif.created_at) }}</p>
+
+                <!-- ── Announcement ─────────────────────────────── -->
+                <template v-if="notif.type === 'announcement'">
+                  <!-- Title -->
+                  <p
+                    class="text-sm font-semibold leading-snug line-clamp-1"
+                    :class="notif.is_read ? 'text-gray-500' : 'text-gray-900'"
+                  >
+                    {{ notif.announcement?.title ?? 'Announcement' }}
+                  </p>
+                  <!-- Message body — full text, no clamp -->
+                  <p class="text-xs text-gray-500 leading-relaxed mt-0.5 break-words">
+                    {{ notif.message }}
+                  </p>
+                </template>
+
+                <!-- ── Note notification ─────────────────────────── -->
+                <template v-else>
+                  <p
+                    class="text-sm leading-relaxed break-words"
+                    :class="notif.is_read ? 'text-gray-500' : 'text-gray-800 font-medium'"
+                  >
+                    {{ notif.message }}
+                  </p>
+                </template>
+
+                <p class="text-[11px] text-gray-400 mt-1">{{ timeAgo(notif.created_at) }}</p>
               </div>
 
               <!-- Arrow on hover -->
@@ -112,7 +136,10 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { BellIcon, BellSlashIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import {
+  BellIcon, BellSlashIcon, ChevronRightIcon,
+  InformationCircleIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon,
+} from '@heroicons/vue/24/outline'
 import { useNotificationsStore } from '../../stores/notifications'
 
 const props = defineProps({
@@ -182,5 +209,17 @@ function timeAgo(dateStr) {
   if (diff < 86400)  return `${Math.floor(diff / 3600)}h ago`
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
   return new Date(dateStr).toLocaleDateString()
+}
+// Announcement type helpers
+const _announcementChips = {
+  info:    'bg-blue-100 text-blue-700',
+  warning: 'bg-yellow-100 text-yellow-700',
+  success: 'bg-green-100 text-green-700',
+  danger:  'bg-red-100 text-red-700',
+}
+function announcementChip(type) { return _announcementChips[type] ?? 'bg-gray-100 text-gray-600' }
+function announcementDot(type) {
+  const map = { info: 'bg-blue-500', warning: 'bg-yellow-500 animate-pulse', success: 'bg-green-500', danger: 'bg-red-500 animate-pulse' }
+  return map[type] ?? 'bg-blue-500'
 }
 </script>

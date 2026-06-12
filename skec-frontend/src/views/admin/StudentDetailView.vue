@@ -86,8 +86,10 @@
               required
             />
             <AppInput
-              :model-value="profile?.reg_no"
+              v-model="form.reg_no"
               label="Registration No."
+              :error="fieldErrors.reg_no"
+              required
             />
             <AppInput
               v-model="form.dob"
@@ -255,6 +257,7 @@ const mediumOptions = [
 const form = reactive({
   name: '',
   father_name: '',
+  reg_no:'',
   dob: '',
   gender: '',
   address: '',
@@ -287,6 +290,7 @@ function fillForm() {
   const p = student.value?.profile
   form.name = student.value?.name || ''
   form.father_name = p?.father_name || ''
+  form.reg_no = p?.reg_no || ''
   form.dob = p?.dob ? p.dob.slice(0, 10) : ''
   form.gender = p?.gender || ''
   form.address = p?.address || ''
@@ -311,7 +315,7 @@ async function saveEdit() {
   Object.keys(fieldErrors).forEach(k => delete fieldErrors[k])
 
   const data = new FormData()
-  const editableFields = ['name', 'father_name', 'dob', 'gender', 'address', 'community_category', 'contact_phone', 'qualification', 'course_id', 'medium_of_studying', 'password', 'password_confirmation']
+  const editableFields = ['name', 'father_name','reg_no', 'dob', 'gender', 'address', 'community_category', 'contact_phone', 'qualification', 'course_id', 'medium_of_studying', 'password', 'password_confirmation']
   
   Object.entries(form).forEach(([key, value]) => {
     if (!editableFields.includes(key)) return

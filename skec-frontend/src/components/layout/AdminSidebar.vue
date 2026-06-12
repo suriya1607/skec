@@ -82,7 +82,7 @@ import { useSettingsStore } from '../../stores/settings'
 import {
   HomeIcon, UsersIcon, DocumentTextIcon, TagIcon, BookOpenIcon,
   EnvelopeIcon, ComputerDesktopIcon, CogIcon,
-  ClipboardDocumentListIcon, ArrowRightOnRectangleIcon,
+  ClipboardDocumentListIcon, ArrowRightOnRectangleIcon, MegaphoneIcon,
 } from '@heroicons/vue/24/outline'
 
 const route  = useRoute()
@@ -106,15 +106,16 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener('resize', checkMobile))
 
 const navItems = [
-  { name: 'dashboard',   label: 'Dashboard',      to: '/admin/dashboard',   icon: HomeIcon },
-  { name: 'students',    label: 'Students',        to: '/admin/students',    icon: UsersIcon },
-  { name: 'notes',       label: 'Notes',           to: '/admin/notes',       icon: DocumentTextIcon },
-  { name: 'categories',  label: 'Batch',      to: '/admin/batch',  icon: TagIcon },
-  { name: 'subjects',    label: 'Subjects',         to: '/admin/subjects',    icon: BookOpenIcon },
-  { name: 'invitations', label: 'Invitations',     to: '/admin/invitations', icon: EnvelopeIcon },
-  { name: 'sessions',    label: 'Sessions',        to: '/admin/sessions',    icon: ComputerDesktopIcon },
-  { name: 'logs',        label: 'Activity Logs',   to: '/admin/logs',        icon: ClipboardDocumentListIcon },
-  { name: 'settings',    label: 'Settings',        to: '/admin/settings',    icon: CogIcon },
+  { name: 'dashboard',      label: 'Dashboard',       to: '/admin/dashboard',       icon: HomeIcon },
+  { name: 'students',       label: 'Students',         to: '/admin/students',         icon: UsersIcon },
+  { name: 'notes',          label: 'Notes',            to: '/admin/notes',            icon: DocumentTextIcon },
+  { name: 'categories',     label: 'Batch',            to: '/admin/batch',            icon: TagIcon },
+  { name: 'subjects',       label: 'Subjects',         to: '/admin/subjects',         icon: BookOpenIcon },
+  { name: 'announcements',  label: 'Announcements',    to: '/admin/announcements',    icon: MegaphoneIcon },
+  { name: 'invitations',    label: 'Invitations',      to: '/admin/invitations',      icon: EnvelopeIcon },
+  { name: 'sessions',       label: 'Sessions',         to: '/admin/sessions',         icon: ComputerDesktopIcon },
+  { name: 'logs',           label: 'Activity Logs',    to: '/admin/logs',             icon: ClipboardDocumentListIcon },
+  { name: 'settings',       label: 'Settings',         to: '/admin/settings',         icon: CogIcon },
 ]
 
 function isActive(path) { return route.path.startsWith(path) }

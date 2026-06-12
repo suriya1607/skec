@@ -16,7 +16,7 @@ class NotificationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $notifications = Notification::with('note:id,title,slug')
+        $notifications = Notification::with(['note:id,title,slug', 'announcement:id,title,type'])
             ->forUser($request->user()->id)
             ->orderBy('created_at', 'desc')
             ->paginate(20);

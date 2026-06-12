@@ -177,7 +177,7 @@
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-100 pt-5">
-          <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          <p v-if="invitation.expires_at" class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             Invitation expires {{ expiresFormatted }}
           </p>
           <AppButton type="submit" variant="primary" :loading="loading" class="w-full sm:w-auto">

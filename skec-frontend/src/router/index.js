@@ -128,6 +128,12 @@ const router = createRouter({
       component: () => import('../views/admin/ActivityLogsView.vue'),
       meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
     },
+    {
+      path: '/admin/announcements',
+      name: 'admin.announcements',
+      component: () => import('../views/admin/AnnouncementsView.vue'),
+      meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
+    },
 
     // ── Student ────────────────────────────────────────────────
     {

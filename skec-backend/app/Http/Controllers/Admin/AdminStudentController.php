@@ -183,6 +183,7 @@ class AdminStudentController extends Controller
         $student->profile()->update([
             'father_name' => $request->father_name,
             'dob' => $request->dob,
+            'reg_no' => $request->reg_no,
             'gender' => $request->gender,
             'address' => $request->address,
             'community_category' => $request->community_category,
