@@ -86,6 +86,11 @@ class CategoryController extends Controller
 
         $query = \App\Models\Note::with(['subject'])
             ->published()
+            ->where(function ($q) use ($freeCategoryIds) {
+                foreach ($freeCategoryIds as $id) {
+                    $q->orWhereRaw('FIND_IN_SET(?, category_id)', [$id]);
+                }
+            })
             ->orderBy('published_at', 'desc');
 
         // Optional search
