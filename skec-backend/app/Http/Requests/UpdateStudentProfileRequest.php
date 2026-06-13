@@ -22,19 +22,19 @@ class UpdateStudentProfileRequest extends FormRequest
      */
     public function rules(): array
     {
-    return [
-        'name' => ['sometimes', 'string', 'max:255'],
-        'status' => ['sometimes', 'in:active,inactive'],
-
-        'father_name' => ['nullable', 'string'],
-        'dob' => ['nullable', 'date'],
-        'gender' => ['nullable', 'in:male,female,other'],
-        'address' => ['nullable', 'string'],
-        'community_category' => ['nullable', 'string'],
-        'contact_phone' => ['nullable', 'string'],
-        'qualification' => ['nullable', 'string'],
-        'course_id' => ['nullable', 'integer'],
-        'medium_of_studying' => ['nullable', 'in:english,tamil'],
-    ];
+        return [
+            'name' => ['sometimes', 'string', 'max:255'],
+            'status' => ['sometimes', 'in:active,inactive'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'father_name' => ['nullable', 'string'],
+            'dob' => ['nullable', 'date'],
+            'gender' => ['nullable', 'in:male,female,other'],
+            'address' => ['nullable', 'string'],
+            'community_category' => ['nullable', 'string'],
+            'contact_phone' => ['nullable', 'string'],
+            'qualification' => ['nullable', 'string'],
+            'course_id' => ['nullable', 'integer'],
+            'medium_of_studying' => ['nullable', 'in:english,tamil'],
+        ];
     }
 }

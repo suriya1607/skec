@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Hash;
 
 class AdminStudentController extends Controller
 {
@@ -174,10 +175,17 @@ class AdminStudentController extends Controller
         $student = User::with('profile')->students()->findOrFail($id);
 
         // update users table
-        $student->update([
+        $userData = [
             'name' => $request->name,
             'status' => $request->status ?? $student->status,
-        ]);
+        ];
+
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
+
+        $student->update($userData);
+
 
         // update profile table
         $student->profile()->update([

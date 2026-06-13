@@ -377,7 +377,7 @@
               {{ batch.desc }}
             </p>
             <div class="text-xs font-semibold" :class="batch.featured ? 'text-primary-200' : 'text-primary-700'">
-              {{ batch.seats }} seats available
+              {{ batch.seats }} seats enrolled
             </div>
           </div>
         </div>
@@ -523,9 +523,14 @@
             class="bg-gray-50 rounded-2xl p-5 sm:p-6 border border-gray-100 hover:shadow-md transition-shadow"
           >
             <div class="flex gap-1 mb-3">
-              <StarIcon v-for="s in 5" :key="s" class="w-4 h-4 text-amber-400 fill-amber-400" />
+              <StarIcon
+                v-for="s in 5"
+                :key="s"
+                class="w-4 h-4"
+                :class="s <= (t.rating || 5) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200'"
+              />
             </div>
-            <p class="text-gray-700 text-sm leading-relaxed mb-5 italic">"{{ t.quote }}"</p>
+            <p class="text-gray-700 text-sm leading-relaxed mb-5 italic">"{{ t.quote || t.review }}"</p>
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                 <span class="text-primary-700 font-bold text-xs">{{ t.name?.charAt(0) }}</span>
@@ -644,12 +649,14 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { settingsApi } from '../../api/settings'
+import { reviewsApi } from '../../api/student/reviews'
 import {
   ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon,
   CheckCircleIcon, AcademicCapIcon, StarIcon,
   Bars3Icon, XMarkIcon,
-  BookOpenIcon, TrophyIcon, UsersIcon, ComputerDesktopIcon,
+  BookOpenIcon, TrophyIcon, UsersIcon, ComputerDesktopIcon
 } from '@heroicons/vue/24/outline'
+import * as HeroIcons from '@heroicons/vue/24/outline'
 
 // ── Scroll + nav state ─────────────────────────────────────────────────
 const scrolled      = ref(false)
@@ -777,13 +784,28 @@ const aboutPoints = computed(() => {
   ]
 })
 
-const aboutCards = [
-  { title: 'Expert Faculty',   desc: 'Experienced educators committed to success',     icon: UsersIcon,           bg: 'bg-blue-50',   color: 'text-blue-600'   },
-  { title: 'Smart Learning',   desc: 'Digital notes accessible anytime, anywhere',     icon: ComputerDesktopIcon, bg: 'bg-purple-50', color: 'text-purple-600' },
-  { title: 'Top Results',      desc: 'Consistently producing district-level toppers', icon: TrophyIcon,           bg: 'bg-amber-50',  color: 'text-amber-600'  },
-  { title: 'Study Materials',  desc: 'Comprehensive notes for all subjects',           icon: BookOpenIcon,         bg: 'bg-green-50',  color: 'text-green-600'  },
-]
+const aboutCards = computed(() => {
+  const raw = settings.value.about_cards
 
+  if (raw) {
+    try {
+      const cards = JSON.parse(raw)
+
+      return cards.map(card => ({
+        ...card,
+        icon: HeroIcons[card.icon] || HeroIcons.UsersIcon
+      }))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  return [  
+    { title: 'Expert Faculty',   desc: 'Experienced educators committed to success',     icon: UsersIcon,           bg: 'bg-blue-50',   color: 'text-blue-600'   },
+    { title: 'Smart Learning',   desc: 'Digital notes accessible anytime, anywhere',     icon: ComputerDesktopIcon, bg: 'bg-purple-50', color: 'text-purple-600' },
+    { title: 'Top Results',      desc: 'Consistently producing district-level toppers', icon: TrophyIcon,           bg: 'bg-amber-50',  color: 'text-amber-600'  },
+    { title: 'Study Materials',  desc: 'Comprehensive notes for all subjects',           icon: BookOpenIcon,         bg: 'bg-green-50',  color: 'text-green-600'  },
+  ]
+})
 const batchItems = computed(() => {
   const raw = settings.value.batch_items
   if (raw) { try { return JSON.parse(raw) } catch {} }
@@ -828,13 +850,25 @@ const galleryImages = computed(() => {
   return []
 })
 
+const liveReviews = ref([])
+
 const testimonials = computed(() => {
+  // If live approved reviews exist, use them
+  if (liveReviews.value.length) {
+    return liveReviews.value.map(r => ({
+      rating: r.rating,
+      quote:  r.review,
+      name:   r.name,
+      batch:  r.batch,
+    }))
+  }
+  // Fallback: settings-based manual testimonials
   const raw = settings.value.testimonials_items
   if (raw) { try { return JSON.parse(raw) } catch {} }
   return [
-    { quote: 'SKEC completely transformed how I approach studies. I went from average to district topper!', name: 'Priya S.', batch: 'Class 10, Batch 2024' },
-    { quote: 'The teachers here genuinely care about every student. The digital notes are incredibly helpful.', name: 'Arjun M.', batch: 'Class 12, Batch 2023' },
-    { quote: 'Best coaching centre in the district. My son scored 98% in boards thanks to SKEC.', name: 'Meena R.', batch: 'Parent' },
+    { rating: 5, quote: 'SKEC completely transformed how I approach studies. I went from average to district topper!', name: 'Priya S.', batch: 'Class 10, Batch 2024' },
+    { rating: 5, quote: 'The teachers here genuinely care about every student. The digital notes are incredibly helpful.', name: 'Arjun M.', batch: 'Class 12, Batch 2023' },
+    { rating: 5, quote: 'Best coaching centre in the district. My son scored 98% in boards thanks to SKEC.', name: 'Meena R.', batch: 'Parent' },
   ]
 })
 
@@ -851,6 +885,11 @@ onMounted(async () => {
   try {
     const res = await settingsApi.getPublic()
     settings.value = res.data.data || {}
+  } catch {}
+  // Load live approved reviews
+  try {
+    const revRes = await reviewsApi.getPublic()
+    liveReviews.value = revRes.data.data || []
   } catch {}
   startSliderTimer()
 })

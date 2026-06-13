@@ -32,6 +32,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'watermark_opacity',       'value' => '0.15',            'type' => 'float',   'group' => 'security', 'is_public' => true,  'description' => 'PDF watermark opacity (0–1)'],
             ['key' => 'watermark_text_template', 'value' => '{email} | {date}','type' => 'string',  'group' => 'security', 'is_public' => true,  'description' => 'Watermark text template'],
             ['key' => 'enable_access_logs',      'value' => 'true',            'type' => 'boolean', 'group' => 'security', 'is_public' => false, 'description' => 'Enable PDF access logging'],
+            ['key' => 'batch_delete_key',        'value' => 'DELETE123',       'type' => 'string',  'group' => 'security', 'is_public' => false, 'description' => 'Security key required to delete a batch (changeable by admin)'],
 
             // ── Landing — Hero ────────────────────────────────────────────────
             ['key' => 'hero_image', 'value' => null, 'type' => 'string', 'group' => 'landing', 'is_public' => true],

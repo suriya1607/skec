@@ -134,6 +134,12 @@ const router = createRouter({
       component: () => import('../views/admin/AnnouncementsView.vue'),
       meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
     },
+    {
+      path: '/admin/reviews',
+      name: 'admin.reviews',
+      component: () => import('../views/admin/ReviewsView.vue'),
+      meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
+    },
 
     // ── Student ────────────────────────────────────────────────
     {
@@ -156,6 +162,12 @@ const router = createRouter({
       path: '/profile',
       name: 'student.profile',
       component: () => import('../views/student/ProfileView.vue'),
+      meta: { layout: 'StudentLayout', requiresAuth: true, role: 'student' },
+    },
+    {
+      path: '/review',
+      name: 'student.review',
+      component: () => import('../views/student/ReviewView.vue'),
       meta: { layout: 'StudentLayout', requiresAuth: true, role: 'student' },
     },
 

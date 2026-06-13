@@ -47,11 +47,82 @@ class CategoryController extends Controller
         return $this->success($category, 'Category updated');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, \Illuminate\Http\Request $request): JsonResponse
     {
         $category = NoteCategory::findOrFail($id);
+
+        // ── 1. Verify security key ──────────────────────────────────────────
+        $expectedKey = \App\Models\Setting::get('batch_delete_key', 'DELETE123');
+        $providedKey = $request->input('security_key', '');
+
+        if (empty($providedKey)) {
+            return $this->error('Security key is required to delete a batch.', 'security_key_required', 422);
+        }
+
+        if ($providedKey !== $expectedKey) {
+            return $this->error('Incorrect security key. Batch deletion denied.', 'security_key_invalid', 403);
+        }
+
+        // ── 2. Delete all notes that belong ONLY to this batch ─────────────
+        //    Notes with comma-separated category_ids: only delete if this
+        //    batch is the sole category; otherwise just strip this category.
+        $notesInBatch = \App\Models\Note::hasCategory($id)->get();
+
+        foreach ($notesInBatch as $note) {
+            $ids = $note->getCategoryIdsArray();
+
+            if (count($ids) <= 1) {
+                // Only this batch — delete the note entirely + its file
+                $this->deleteNoteFile($note);
+                $note->accessLogs()->delete();
+                $note->delete();
+            } else {
+                // Note belongs to multiple batches — just remove this batch from the list
+                $remaining = array_filter($ids, fn($i) => $i !== $id);
+                $note->update(['category_id' => implode(',', $remaining)]);
+            }
+        }
+
+        // ── 3. Delete & deactivate all students enrolled in this batch ──────
+        //    StudentProfile.course_id maps to NoteCategory.id
+        $profiles = \App\Models\StudentProfile::where('course_id', $id)->with('user')->get();
+
+        foreach ($profiles as $profile) {
+            $user = $profile->user;
+            if ($user) {
+                // Revoke all tokens (force logout)
+                $user->tokens()->delete();
+                // Delete sessions
+                $user->userSessions()->delete();
+                // Delete custom notifications
+                \App\Models\Notification::where('user_id', $user->id)->delete();
+                // Delete access logs
+                $user->accessLogs()->delete();
+                // Delete reviews
+                \App\Models\Review::where('user_id', $user->id)->delete();
+                // Delete the student user record (cascades to profile via DB)
+                $user->delete();
+            }
+        }
+
+        // ── 4. Delete the batch itself ─────────────────────────────────────
         $category->delete();
-        return $this->noContent();
+
+        return $this->success([
+            'batch'            => $category->name,
+            'notes_deleted'    => $notesInBatch->count(),
+            'students_deleted' => $profiles->count(),
+        ], "Batch \"{$category->name}\" and all associated data permanently deleted.");
+    }
+
+    /**
+     * Remove the physical PDF file from storage.
+     */
+    private function deleteNoteFile(\App\Models\Note $note): void
+    {
+        if ($note->file_path && \Illuminate\Support\Facades\Storage::exists($note->file_path)) {
+            \Illuminate\Support\Facades\Storage::delete($note->file_path);
+        }
     }
 
     public function StudentCategories(): JsonResponse
