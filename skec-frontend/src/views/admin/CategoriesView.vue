@@ -2,6 +2,10 @@
   <div>
     <h1 class="text-2xl font-bold text-gray-900 mb-6">Batch</h1>
 
+    <!-- Global alerts -->
+    <AppAlert v-if="deleteSuccess" type="success" :message="deleteSuccess" class="mb-4" dismissible />
+    <AppAlert v-if="deleteError"   type="error"   :message="deleteError"   class="mb-4" dismissible />
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Add / Edit form -->
       <div class="card h-fit">
@@ -98,7 +102,6 @@
                     : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-600'
                 ]"
               >
-                <!-- Toggle dot -->
                 <span :class="['w-3.5 h-3.5 rounded-full border-2 transition-colors duration-150 flex-shrink-0', cat.open_in_browser ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300']" />
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3" />
@@ -150,7 +153,7 @@
                 </svg>
               </button>
               <button
-                @click="deleteCategory(cat)"
+                @click="openDeleteModal(cat)"
                 title="Delete batch"
                 class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
               >
@@ -163,6 +166,71 @@
         </div>
       </div>
     </div>
+
+    <!-- ── Delete Security Modal ──────────────────────────────────────── -->
+    <AppModal v-model="deleteModal.open" title="Delete Batch — Security Required">
+      <div class="space-y-4">
+
+        <!-- Danger warning banner -->
+        <div class="rounded-xl bg-red-50 border border-red-200 p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <div>
+              <p class="font-semibold text-red-700 text-sm">⚠️ This action is irreversible!</p>
+              <p class="text-red-600 text-xs mt-1 leading-relaxed">
+                Deleting <strong>"{{ deleteModal.cat?.name }}"</strong> will permanently:
+              </p>
+              <ul class="text-red-600 text-xs mt-2 space-y-0.5 list-disc list-inside">
+                <li>Delete <strong>all notes</strong> in this batch (including PDF files)</li>
+                <li>Delete <strong>all student accounts</strong> enrolled in this batch</li>
+                <li>Remove all associated data (sessions, logs, reviews, notifications)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security key input -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            🔐 Enter Security Key to confirm deletion
+          </label>
+          <input
+            v-model="deleteModal.key"
+            type="password"
+            placeholder="Enter security key…"
+            class="input-base"
+            autocomplete="new-password"
+            @keydown.enter="confirmDelete"
+          />
+          <p class="text-xs text-gray-400 mt-1">
+            The key can be changed in <strong>Settings → Security → Batch Delete Key</strong>.
+          </p>
+          <!-- Error message -->
+          <div v-if="deleteModal.error" class="mt-2 flex items-center gap-1.5 text-red-600 text-xs font-medium">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            {{ deleteModal.error }}
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-2 justify-end pt-1">
+          <AppButton variant="secondary" @click="deleteModal.open = false">Cancel</AppButton>
+          <AppButton
+            variant="danger"
+            :loading="deleteModal.loading"
+            :disabled="!deleteModal.key.trim()"
+            @click="confirmDelete"
+          >
+            🗑 Delete Batch Permanently
+          </AppButton>
+        </div>
+      </div>
+    </AppModal>
+
   </div>
 </template>
 
@@ -175,13 +243,67 @@ import AppInput  from '../../components/common/AppInput.vue'
 import AppButton from '../../components/common/AppButton.vue'
 import AppBadge  from '../../components/common/AppBadge.vue'
 import AppLoader from '../../components/common/AppLoader.vue'
+import AppAlert  from '../../components/common/AppAlert.vue'
+import AppModal  from '../../components/common/AppModal.vue'
 
-const loading    = ref(false)
-const saving     = ref(false)
-const editing    = ref(null)
-const categories = ref([])
-const form       = reactive({ name: '', slug: '', color: '#3498DB', icon: '', is_active: true, open_in_browser: false, is_free: false })
+const loading       = ref(false)
+const saving        = ref(false)
+const editing       = ref(null)
+const categories    = ref([])
+const deleteSuccess = ref('')
+const deleteError   = ref('')
+const form          = reactive({ name: '', slug: '', color: '#3498DB', icon: '', is_active: true, open_in_browser: false, is_free: false })
 
+// ── Delete modal state ──────────────────────────────────────────────────
+const deleteModal = reactive({
+  open:    false,
+  cat:     null,
+  key:     '',
+  loading: false,
+  error:   '',
+})
+
+function openDeleteModal(cat) {
+  deleteModal.cat     = cat
+  deleteModal.key     = ''
+  deleteModal.error   = ''
+  deleteModal.loading = false
+  deleteModal.open    = true
+  deleteSuccess.value = ''
+  deleteError.value   = ''
+}
+
+async function confirmDelete() {
+  if (!deleteModal.key.trim()) return
+
+  deleteModal.loading = true
+  deleteModal.error   = ''
+
+  try {
+    const res = await adminCategoriesApi.delete(deleteModal.cat.id, deleteModal.key.trim())
+    const data = res.data?.data
+
+    deleteModal.open    = false
+    deleteSuccess.value = data
+      ? `✅ Batch "${data.batch}" deleted — ${data.notes_deleted} note(s) and ${data.students_deleted} student(s) removed.`
+      : `Batch "${deleteModal.cat.name}" deleted successfully.`
+
+    fetchCategories()
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to delete batch.'
+    // Show inline if wrong key, global if server error
+    if (err.response?.status === 403 || err.response?.status === 422) {
+      deleteModal.error = msg
+    } else {
+      deleteModal.open  = false
+      deleteError.value = msg
+    }
+  } finally {
+    deleteModal.loading = false
+  }
+}
+
+// ── Existing functions ──────────────────────────────────────────────────
 function autoSlug() { form.slug = slugify(form.name) }
 
 async function fetchCategories() {
@@ -221,7 +343,6 @@ function reset() {
 
 async function toggleOpenInBrowser(cat) {
   const newVal = !cat.open_in_browser
-  // Optimistic update
   cat.open_in_browser = newVal
   try {
     await adminCategoriesApi.update(cat.id, {
@@ -230,7 +351,6 @@ async function toggleOpenInBrowser(cat) {
       open_in_browser: newVal,
     })
   } catch {
-    // Revert on error
     cat.open_in_browser = !newVal
   }
 }
@@ -247,12 +367,6 @@ async function toggleIsFree(cat) {
   } catch {
     cat.is_free = !newVal
   }
-}
-
-async function deleteCategory(cat) {
-  if (!confirm(`Delete "${cat.name}"?`)) return
-  await adminCategoriesApi.delete(cat.id)
-  fetchCategories()
 }
 
 onMounted(fetchCategories)

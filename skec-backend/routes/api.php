@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AccessLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminNoteController;
+use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminStudentController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\InvitationController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureUserActive;
@@ -41,6 +43,9 @@ Route::prefix('v1')->group(function () {
     // Contact
     Route::post('/contact', [ContactController::class, 'sendMessage']);
 
+    // Public reviews (landing page)
+    Route::get('/reviews/public', [ReviewController::class, 'publicReviews']);
+
     // ─── AUTHENTICATED ROUTES ───────────────────────────────────────────────
     Route::middleware(['auth:sanctum', EnsureValidSession::class, EnsureUserActive::class])->group(function () {
 
@@ -54,6 +59,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/notes/{id}/stream-token', [NoteController::class, 'getStreamToken']);
         Route::post('/notes/{id}/log', [NoteController::class, 'logAccess']);
         Route::get('student/categories', [CategoryController::class, 'StudentCategories']);
+
+        // Reviews (student)
+        Route::get('/reviews/mine', [ReviewController::class, 'myReview']);
+        Route::post('/reviews', [ReviewController::class, 'store']);
 
         // Notifications (student in-app)
         Route::get('/notifications', [NotificationController::class, 'index']);
@@ -125,6 +134,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/announcements', [AnnouncementController::class, 'store']);
             Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy']);
             Route::post('/announcements/{id}/resend', [AnnouncementController::class, 'resend']);
+
+            // Reviews (admin)
+            Route::get('/reviews', [AdminReviewController::class, 'index']);
+            Route::get('/reviews/pending-count', [AdminReviewController::class, 'pendingCount']);
+            Route::patch('/reviews/{id}/approve', [AdminReviewController::class, 'approve']);
+            Route::patch('/reviews/{id}/reject', [AdminReviewController::class, 'reject']);
+            Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy']);
         });
     });
 

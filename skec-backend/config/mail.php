@@ -115,4 +115,5 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'enquiry_cc' => explode(',', env('ENQUIRY_CC', '')),
 ];

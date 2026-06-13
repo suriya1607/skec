@@ -26,6 +26,9 @@
           <RouterLink to="/profile" class="px-2.5 sm:px-4 py-2 text-sm font-medium text-gray-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all" active-class="text-primary-700 bg-primary-50">
             Profile
           </RouterLink>
+          <RouterLink to="/review" class="px-2.5 sm:px-4 py-2 text-sm font-medium text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" active-class="text-amber-600 bg-amber-50">
+            ⭐ My Review
+          </RouterLink>
         </nav>
 
         <!-- User + Notification Bell + Logout -->

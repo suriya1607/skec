@@ -23,7 +23,7 @@ class ContactController extends Controller
             $adminEmail = Setting::where('key', 'admin_email')->value('value') ?? 'info@skecinstitute.in';
 
             // Send email to admin
-            Mail::to($adminEmail)->send(new ContactMail($request->validated()));
+            Mail::to($adminEmail)->cc(config('mail.enquiry_cc'))->send(new ContactMail($request->validated()));
 
             return $this->success(
                 null,

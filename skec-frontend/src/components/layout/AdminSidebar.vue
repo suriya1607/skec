@@ -83,6 +83,7 @@ import {
   HomeIcon, UsersIcon, DocumentTextIcon, TagIcon, BookOpenIcon,
   EnvelopeIcon, ComputerDesktopIcon, CogIcon,
   ClipboardDocumentListIcon, ArrowRightOnRectangleIcon, MegaphoneIcon,
+  StarIcon,
 } from '@heroicons/vue/24/outline'
 
 const route  = useRoute()
@@ -112,6 +113,7 @@ const navItems = [
   { name: 'categories',     label: 'Batch',            to: '/admin/batch',            icon: TagIcon },
   { name: 'subjects',       label: 'Subjects',         to: '/admin/subjects',         icon: BookOpenIcon },
   { name: 'announcements',  label: 'Announcements',    to: '/admin/announcements',    icon: MegaphoneIcon },
+  { name: 'reviews',        label: 'Reviews',           to: '/admin/reviews',          icon: StarIcon },
   { name: 'invitations',    label: 'Invitations',      to: '/admin/invitations',      icon: EnvelopeIcon },
   { name: 'sessions',       label: 'Sessions',         to: '/admin/sessions',         icon: ComputerDesktopIcon },
   { name: 'logs',           label: 'Activity Logs',    to: '/admin/logs',             icon: ClipboardDocumentListIcon },

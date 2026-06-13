@@ -177,7 +177,7 @@ const JSON_FIELDS      = ['batch_items','openings_items','achievements_items','t
 const PIPE_FIELDS      = ['about_points']
 const LONG_TEXT_FIELDS = [
   'hero_description','about_description','batch_description',
-  'openings_description','achievements_description','cta_description','address',
+  'openings_description','achievements_description','cta_description','address','about_cards'
 ]
 
 function isImageField(key)    { return IMAGE_FIELDS.includes(key) }
