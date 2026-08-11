@@ -24,7 +24,7 @@ class AdministratorController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = User::admins();
+        $query = User::admins()->where('id', '!=', 117);
 
         if ($request->filled('search')) {
             $s = $request->search;
