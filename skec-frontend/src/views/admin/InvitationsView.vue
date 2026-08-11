@@ -23,6 +23,22 @@
       </form>
     </div>
 
+    <!-- Filters -->
+    <div class="card mb-5 flex flex-wrap gap-4">
+      <AppInput
+        v-model="search"
+        placeholder="Search invitation email…"
+        class="flex-1 min-w-48"
+        @input="debouncedFetch"
+      />
+      <AppSelect
+        v-model="statusFilter"
+        :options="[{ value: '', label: 'All Statuses' }, { value: 'pending', label: 'Pending' }, { value: 'used', label: 'Used' }, { value: 'expired', label: 'Expired' }]"
+        class="w-44"
+        @change="() => fetchInvitations(1)"
+      />
+    </div>
+
     <!-- Mobile card list -->
     <div v-if="isMobile" class="space-y-3">
       <div v-if="loading" class="py-12"><AppLoader /></div>
@@ -85,8 +101,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { adminInvitationsApi }         from '../../api/admin/invitations'
-import { formatDate, copyToClipboard } from '../../utils/helpers'
+import { formatDate, copyToClipboard, debounce } from '../../utils/helpers'
 import AppInput      from '../../components/common/AppInput.vue'
+import AppSelect     from '../../components/common/AppSelect.vue'
 import AppButton     from '../../components/common/AppButton.vue'
 import AppTable      from '../../components/common/AppTable.vue'
 import AppBadge      from '../../components/common/AppBadge.vue'
@@ -100,10 +117,14 @@ const inviting      = ref(false)
 const invitations   = ref([])
 const meta          = ref(null)
 const inviteEmail   = ref('')
+const search        = ref('')
+const statusFilter  = ref('')
 const inviteError   = ref('')
 const inviteSuccess = ref('')
 const emailError    = ref('')
 const isMobile      = ref(false)
+
+const debouncedFetch = debounce(() => fetchInvitations(1), 300)
 
 function checkMobile() { isMobile.value = window.innerWidth < 768 }
 onMounted(() => { checkMobile(); window.addEventListener('resize', checkMobile) })
@@ -124,10 +145,17 @@ function getStatus(inv) {
 
 async function fetchInvitations(p = 1) {
   loading.value = true
-  const res = await adminInvitationsApi.list({ page: p })
-  invitations.value = res.data.data
-  meta.value        = res.data.meta
-  loading.value = false
+  try {
+    const res = await adminInvitationsApi.list({
+      page: p,
+      search: search.value || undefined,
+      status: statusFilter.value || undefined,
+    })
+    invitations.value = res.data.data
+    meta.value        = res.data.meta
+  } finally {
+    loading.value = false
+  }
 }
 
 async function sendInvite() {

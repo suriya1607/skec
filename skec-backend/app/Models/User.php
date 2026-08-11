@@ -142,11 +142,11 @@ class User extends Authenticatable implements HasMedia
 
     public function scopeAdmins($query)
     {
-        return $query->whereIn('role', ['admin', 'super_admin']);
+        return $query->where('role', 'admin');
     }
 
     public function scopeSuperAdmins($query)
     {
-        return $query->where(fn($q) => $q->where('role', 'super_admin')->orWhere('is_super_admin', true));
+        return $query->where('role', 'admin')->where('is_super_admin', true);
     }
 }

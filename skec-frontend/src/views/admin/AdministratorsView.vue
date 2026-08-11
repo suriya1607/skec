@@ -3,12 +3,12 @@
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Administrators</h1>
-        <p class="text-sm text-gray-500 mt-0.5">Manage admin accounts and super admin privileges</p>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Web Coordinators</h1>
+        <p class="text-sm text-gray-500 mt-0.5">Manage web coordinator accounts and site administrator privileges</p>
       </div>
       <AppButton variant="primary" @click="openCreateModal">
         <UserPlusIcon class="w-4 h-4 mr-1.5" />
-        New Administrator
+        New Web Coordinator
       </AppButton>
     </div>
 
@@ -20,7 +20,7 @@
     <div class="card mb-5 flex flex-wrap gap-4">
       <AppInput
         v-model="search"
-        placeholder="Search admin by name or email…"
+        placeholder="Search web coordinator by name or email…"
         class="flex-1 min-w-48"
         @input="debouncedFetch"
       />
@@ -33,7 +33,7 @@
     </div>
 
     <!-- Table -->
-    <AppTable :columns="columns" :rows="admins" :loading="loading" empty-title="No administrators found">
+    <AppTable :columns="columns" :rows="admins" :loading="loading" empty-title="No web coordinators found">
       <!-- Admin Name & Email -->
       <template #cell-name="{ row }">
         <div class="flex items-center gap-3">
@@ -47,7 +47,7 @@
                 v-if="row.is_super_admin"
                 class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200"
               >
-                <ShieldCheckIcon class="w-3 h-3" /> Super Admin
+                <ShieldCheckIcon class="w-3 h-3" /> Site Administrator
               </span>
             </div>
             <p class="text-xs text-gray-400 truncate">{{ row.email }}</p>
@@ -94,7 +94,7 @@
     <AppPagination :meta="meta" @change="fetchAdmins" class="mt-4" />
 
     <!-- Create / Edit Modal -->
-    <AppModal v-model="modal.open" :title="modal.isEdit ? 'Edit Administrator' : 'Create Administrator'">
+    <AppModal v-model="modal.open" :title="modal.isEdit ? 'Edit Web Coordinator' : 'Create Web Coordinator'">
       <form @submit.prevent="handleSave" class="space-y-4">
         <AppAlert v-if="modal.error" type="error" :message="modal.error" dismissible />
 
@@ -127,8 +127,8 @@
           :options="[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]"
         />
 
-        <!-- Super Admin privilege checkbox -->
-        <!-- <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 flex items-start gap-3">
+        <!-- Site Administrator privilege checkbox -->
+        <div class="p-3 rounded-xl border border-purple-100 bg-purple-50/50 flex items-start gap-3">
           <input
             id="super-admin-checkbox"
             v-model="modal.form.is_super_admin"
@@ -136,15 +136,15 @@
             class="mt-1 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
           />
           <label for="super-admin-checkbox" class="text-sm cursor-pointer select-none">
-            <span class="font-semibold text-purple-900 block">Grant Super Administrator Privileges</span>
-            <span class="text-xs text-purple-700">Super Admins can manage administrator accounts and settings.</span>
+            <span class="font-semibold text-purple-900 block">Grant Site Administrator Privileges</span>
+            <span class="text-xs text-purple-700">Site Administrators can manage web coordinator accounts and system settings.</span>
           </label>
-        </div> -->
+        </div>
 
         <div class="flex gap-2 justify-end pt-2">
           <AppButton variant="secondary" @click="modal.open = false">Cancel</AppButton>
           <AppButton type="submit" variant="primary" :loading="modal.saving">
-            {{ modal.isEdit ? 'Update Administrator' : 'Create Administrator' }}
+            {{ modal.isEdit ? 'Update Web Coordinator' : 'Create Web Coordinator' }}
           </AppButton>
         </div>
       </form>
@@ -177,7 +177,7 @@ const actionMsg   = ref('')
 const actionError = ref('')
 
 const columns = [
-  { key: 'name',       label: 'Administrator' },
+  { key: 'name',       label: 'Web Coordinator' },
   { key: 'status',     label: 'Status' },
   { key: 'created_at', label: 'Created' },
   { key: 'actions',    label: 'Actions' },
@@ -258,15 +258,15 @@ async function handleSave() {
 
     if (modal.isEdit) {
       await adminAdministratorsApi.update(modal.editId, payload)
-      actionMsg.value = `Administrator "${modal.form.name}" updated successfully.`
+      actionMsg.value = `Web Coordinator "${modal.form.name}" updated successfully.`
     } else {
       await adminAdministratorsApi.create(payload)
-      actionMsg.value = `Administrator "${modal.form.name}" created successfully.`
+      actionMsg.value = `Web Coordinator "${modal.form.name}" created successfully.`
     }
     modal.open = false
     fetchAdmins(meta.value?.current_page || 1)
   } catch (err) {
-    modal.error = err.response?.data?.message || 'Failed to save administrator.'
+    modal.error = err.response?.data?.message || 'Failed to save web coordinator.'
   } finally {
     modal.saving = false
   }
@@ -285,15 +285,15 @@ async function toggleStatus(admin) {
 }
 
 async function confirmDelete(admin) {
-  if (!confirm(`Are you sure you want to delete administrator "${admin.name}"?`)) return
+  if (!confirm(`Are you sure you want to delete web coordinator "${admin.name}"?`)) return
   actionMsg.value = ''
   actionError.value = ''
   try {
     await adminAdministratorsApi.delete(admin.id)
-    actionMsg.value = `Administrator "${admin.name}" deleted.`
+    actionMsg.value = `Web Coordinator "${admin.name}" deleted.`
     fetchAdmins(meta.value?.current_page || 1)
   } catch (err) {
-    actionError.value = err.response?.data?.message || 'Failed to delete administrator.'
+    actionError.value = err.response?.data?.message || 'Failed to delete web coordinator.'
   }
 }
 

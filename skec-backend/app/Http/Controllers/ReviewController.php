@@ -53,7 +53,7 @@ class ReviewController extends Controller
      */
     public function publicReviews(): JsonResponse
     {
-        $reviews = Review::with(['user.profile.course'])
+        $reviews = Review::with(['user.profile'])
             ->where('status', 'approved')
             ->latest()
             ->take(12)
@@ -82,7 +82,10 @@ class ReviewController extends Controller
     {
         $user    = $review->user;
         $profile = $user?->profile;
-        $batch   = $profile?->course?->name ?? $profile?->qualification ?? '';
+        $courses = $profile?->getCourses() ?? collect();
+        $batch   = $courses->isNotEmpty()
+            ? $courses->pluck('name')->join(', ')
+            : ($profile?->qualification ?? '');
 
         return [
             'id'         => $review->id,

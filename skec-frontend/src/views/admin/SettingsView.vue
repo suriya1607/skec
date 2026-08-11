@@ -220,7 +220,13 @@ const groupedSettings = computed(() => {
   return groups
 })
 
-const groupList = computed(() => Object.keys(groupedSettings.value))
+const groupList = computed(() => {
+  const keys = Object.keys(groupedSettings.value)
+  if (!authStore.isSuperAdmin) {
+    return keys.filter(g => g !== 'security')
+  }
+  return keys
+})
 
 function formatKey(key) {
   return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())

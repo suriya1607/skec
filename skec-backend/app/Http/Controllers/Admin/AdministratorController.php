@@ -59,7 +59,7 @@ class AdministratorController extends Controller
             'name'           => $validated['name'],
             'email'          => $validated['email'],
             'password'       => Hash::make($validated['password']),
-            'role'           => $isSuper ? 'super_admin' : 'admin',
+            'role'           => 'admin',
             'is_super_admin' => $isSuper,
             'status'         => $validated['status'] ?? 'active',
         ]);
@@ -114,7 +114,7 @@ class AdministratorController extends Controller
 
         if (isset($validated['is_super_admin'])) {
             $data['is_super_admin'] = (bool) $validated['is_super_admin'];
-            $data['role']           = $data['is_super_admin'] ? 'super_admin' : 'admin';
+            $data['role']           = 'admin';
         }
 
         $admin->update($data);

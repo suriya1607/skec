@@ -20,7 +20,12 @@ class InvitationController extends Controller
     {
         $query = Invitation::with('inviter')->orderBy('created_at', 'desc');
 
-        if ($request->has('status')) {
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where('email', 'like', "%{$s}%");
+        }
+
+        if ($request->filled('status')) {
             match ($request->status) {
                 'pending' => $query->pending(),
                 'expired' => $query->expired(),

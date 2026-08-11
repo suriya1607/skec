@@ -17,7 +17,7 @@ class AdminReviewController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Review::with(['user.profile.course'])
+        $query = Review::with(['user.profile'])
             ->latest();
 
         if ($request->filled('status')) {

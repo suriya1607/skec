@@ -109,7 +109,7 @@ onUnmounted(() => window.removeEventListener('resize', checkMobile))
 
 const allNavItems = [
   { name: 'dashboard',      label: 'Dashboard',       to: '/admin/dashboard',       icon: HomeIcon },
-  { name: 'administrators', label: 'Administrators',  to: '/admin/administrators',  icon: ShieldCheckIcon, superAdminOnly: true },
+  { name: 'administrators', label: 'Web Coordinators', to: '/admin/administrators',  icon: ShieldCheckIcon, superAdminOnly: true },
   { name: 'students',       label: 'Students',         to: '/admin/students',         icon: UsersIcon },
   { name: 'notes',          label: 'Notes',            to: '/admin/notes',            icon: DocumentTextIcon },
   { name: 'categories',     label: 'Batch',            to: '/admin/batch',            icon: TagIcon },
