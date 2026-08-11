@@ -33,6 +33,7 @@
           </h2>
 
           <template v-for="(setting, key) in groupSettings" :key="key">
+            <template v-if="key !== 'batch_delete_key' || authStore.isSuperAdmin">
 
             <!-- Single image upload (logo, favicon, about_image) -->
             <AppImageUpload
@@ -139,6 +140,7 @@
               @update:model-value="v => { form[key] = v; isDirty = true }"
             />
 
+            </template>
           </template>
 
           <!-- Save -->
@@ -162,6 +164,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { adminSettingsApi }        from '../../api/admin/settings'
+import { useAuthStore }            from '../../stores/auth'
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import AppInput       from '../../components/common/AppInput.vue'
 import AppButton      from '../../components/common/AppButton.vue'
@@ -169,6 +172,8 @@ import AppAlert       from '../../components/common/AppAlert.vue'
 import AppLoader      from '../../components/common/AppLoader.vue'
 import AppImageUpload from '../../components/common/Appimageupload.vue'
 import SliderManager  from '../../components/common/SliderManager.vue'
+
+const authStore = useAuthStore()
 
 // ── Field type detection ────────────────────────────────────────────────
 const IMAGE_FIELDS     = ['app_logo', 'app_favicon', 'hero_image']

@@ -68,37 +68,38 @@ class NoteController extends Controller
         $note = Note::published()->findOrFail($id);
         $user = $request->user();
 
-        $signedUrl = $this->streamService->generateStreamToken($note, $user);
-
-        // Check if any of the note's categories has open_in_browser enabled
-        $categoryIds = $note->getCategoryIdsArray();
-        $openInBrowser = false;
-        if (!empty($categoryIds)) {
-            $openInBrowser = \App\Models\NoteCategory::whereIn('id', $categoryIds)
-                ->where('open_in_browser', true)
-                ->exists();
+        // Verify student access to batch
+        if (!$user->isAdmin()) {
+            $courseIds = $user->profile?->getCourseIdsArray() ?? [];
+            $noteCatIds = $note->getCategoryIdsArray();
+            $hasAccess = !empty(array_intersect($courseIds, $noteCatIds));
+            abort_unless($hasAccess, 403, 'You do not have access to this note.');
         }
 
         return $this->success([
-            'stream_url'      => $signedUrl,
-            'note_id'         => $note->id,
-            'title'           => $note->title,
-            'total_pages'     => $note->total_pages,
-            'open_in_browser' => $openInBrowser,
+            'stream_url'  => url('/api/v1/notes/' . $note->id . '/stream'),
+            'note_id'     => $note->id,
+            'title'       => $note->title,
+            'total_pages' => $note->total_pages,
         ]);
     }
 
     public function stream(Request $request, int $id): mixed
     {
-        if (!$request->hasValidSignature()) {
-            abort(403, 'Invalid or expired stream token.');
+        $note = Note::published()->findOrFail($id);
+        $user = $request->user();
+
+        // Verify student access to batch
+        if (!$user->isAdmin()) {
+            $courseIds = $user->profile?->getCourseIdsArray() ?? [];
+            $noteCatIds = $note->getCategoryIdsArray();
+            $hasAccess = !empty(array_intersect($courseIds, $noteCatIds));
+            abort_unless($hasAccess, 403, 'You do not have access to this note.');
         }
 
-        $note = Note::findOrFail($id);
-        $user = User::find($request['user']);
+        $sessionToken = $request->header('X-Session-Token', '');
 
         // Log access
-        $sessionToken = $request->header('X-Session-Token');
         $sessionId = null;
         if ($sessionToken) {
             $hash = hash('sha256', $sessionToken);
@@ -107,16 +108,16 @@ class NoteController extends Controller
         }
 
         AccessLog::create([
-            'user_id' => $user->id,
-            'note_id' => $note->id,
+            'user_id'    => $user->id,
+            'note_id'    => $note->id,
             'session_id' => $sessionId,
-            'action' => 'opened',
+            'action'     => 'opened',
             'ip_address' => $request->ip(),
         ]);
 
         $note->increment('view_count');
 
-        return $this->streamService->streamNote($note, $user);
+        return $this->streamService->streamNote($note, $user, $sessionToken);
     }
 
     public function logAccess(Request $request, int $id): JsonResponse

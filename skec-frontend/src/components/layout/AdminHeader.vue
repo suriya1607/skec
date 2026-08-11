@@ -12,7 +12,8 @@
     <div class="flex items-center gap-3">
       <div class="text-right hidden sm:block">
         <p class="text-sm font-semibold text-gray-800">{{ authStore.user?.name }}</p>
-        <p class="text-xs text-gray-400">Administrator</p>
+        <p class="text-xs text-purple-600 font-medium" v-if="authStore.isSuperAdmin">Super Administrator</p>
+        <p class="text-xs text-gray-400" v-else>Administrator</p>
       </div>
       <div class="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
         <span class="text-primary-700 font-bold text-sm">{{ authStore.userInitials }}</span>

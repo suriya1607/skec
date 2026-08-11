@@ -79,11 +79,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useUiStore }   from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
+import { computed } from 'vue'
 import {
   HomeIcon, UsersIcon, DocumentTextIcon, TagIcon, BookOpenIcon,
   EnvelopeIcon, ComputerDesktopIcon, CogIcon,
   ClipboardDocumentListIcon, ArrowRightOnRectangleIcon, MegaphoneIcon,
-  StarIcon,
+  StarIcon, ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 
 const route  = useRoute()
@@ -106,8 +107,9 @@ onMounted(() => {
 })
 onUnmounted(() => window.removeEventListener('resize', checkMobile))
 
-const navItems = [
+const allNavItems = [
   { name: 'dashboard',      label: 'Dashboard',       to: '/admin/dashboard',       icon: HomeIcon },
+  { name: 'administrators', label: 'Administrators',  to: '/admin/administrators',  icon: ShieldCheckIcon, superAdminOnly: true },
   { name: 'students',       label: 'Students',         to: '/admin/students',         icon: UsersIcon },
   { name: 'notes',          label: 'Notes',            to: '/admin/notes',            icon: DocumentTextIcon },
   { name: 'categories',     label: 'Batch',            to: '/admin/batch',            icon: TagIcon },
@@ -119,6 +121,8 @@ const navItems = [
   { name: 'logs',           label: 'Activity Logs',    to: '/admin/logs',             icon: ClipboardDocumentListIcon },
   { name: 'settings',       label: 'Settings',         to: '/admin/settings',         icon: CogIcon },
 ]
+
+const navItems = computed(() => allNavItems.filter(item => item.superAdminOnly ? authStore.isSuperAdmin : true))
 
 function isActive(path) { return route.path.startsWith(path) }
 async function handleLogout() {

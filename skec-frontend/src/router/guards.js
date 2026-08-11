@@ -21,8 +21,14 @@ export function setupGuards(router) {
     }
 
     // Role check
-    if (requiresAuth && requiredRole && authStore.isLoggedIn) {
-      if (authStore.user?.role !== requiredRole) {
+    if (requiresAuth && authStore.isLoggedIn) {
+      if (to.meta.superAdminOnly && !authStore.isSuperAdmin) {
+        return next({ name: 'admin.dashboard' })
+      }
+      if (requiredRole === 'admin' && !authStore.isAdmin) {
+        return next({ name: 'unauthorized' })
+      }
+      if (requiredRole === 'student' && !authStore.isStudent) {
         return next({ name: 'unauthorized' })
       }
     }

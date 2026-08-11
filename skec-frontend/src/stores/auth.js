@@ -9,9 +9,10 @@ export const useAuthStore = defineStore('auth', () => {
   const sessionToken = ref(localStorage.getItem('skec_session_token') || null)
   const isLoading    = ref(false)
 
-  const isLoggedIn = computed(() => !!token.value && !!user.value)
-  const isAdmin    = computed(() => user.value?.role === 'admin')
-  const isStudent  = computed(() => user.value?.role === 'student')
+  const isLoggedIn   = computed(() => !!token.value && !!user.value)
+  const isAdmin      = computed(() => user.value?.role === 'admin' || user.value?.role === 'super_admin' || !!user.value?.is_super_admin)
+  const isSuperAdmin = computed(() => user.value?.role === 'super_admin' || !!user.value?.is_super_admin)
+  const isStudent    = computed(() => user.value?.role === 'student')
   const userInitials = computed(() => getInitials(user.value?.name || ''))
 
   function _persist(userData, tok, sessionTok) {
@@ -81,7 +82,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user, token, sessionToken, isLoading,
-    isLoggedIn, isAdmin, isStudent, userInitials,
+    isLoggedIn, isAdmin, isSuperAdmin, isStudent, userInitials,
     login, logout, fetchMe, initializeAuth, setFromRegister, setUser,
   }
 })

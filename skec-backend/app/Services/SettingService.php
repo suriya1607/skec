@@ -3,15 +3,27 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 
 class SettingService
 {
-    public function getAllSettings(): array
+    /**
+     * Get all settings. Restricts sensitive security settings (like batch_delete_key)
+     * to Super Administrators only.
+     */
+    public function getAllSettings(?User $user = null): array
     {
         $settings = Setting::orderBy('group')->orderBy('id')->get();
         $result = [];
+        $isSuperAdmin = $user && $user->isSuperAdmin();
+
         foreach ($settings as $setting) {
+            // Restrict batch_delete_key to Super Admin only
+            if ($setting->key === 'batch_delete_key' && !$isSuperAdmin) {
+                continue;
+            }
+
             $result[$setting->key] = [
                 'value'       => Setting::castValue($setting->value, $setting->type),
                 'type'        => $setting->type,
@@ -33,9 +45,16 @@ class SettingService
         return $result;
     }
 
-    public function updateSettings(array $data): void
+    public function updateSettings(array $data, ?User $user = null): void
     {
+        $isSuperAdmin = $user && $user->isSuperAdmin();
+
         foreach ($data as $key => $value) {
+            // Ignore non-super admin attempts to change sensitive settings
+            if ($key === 'batch_delete_key' && !$isSuperAdmin) {
+                continue;
+            }
+
             $setting = Setting::where('key', $key)->first();
             if ($setting) {
                 $setting->update(['value' => (string) $value]);

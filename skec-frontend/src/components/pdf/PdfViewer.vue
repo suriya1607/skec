@@ -43,6 +43,15 @@
         </div>
       </div>
 
+      <!-- DevTools Warning -->
+      <div v-if="isDevToolsOpen" class="flex items-center justify-center w-full h-full text-white text-center">
+        <div class="px-4">
+          <ExclamationCircleIcon class="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <p class="text-lg font-semibold">Developer Options Detected</p>
+          <p class="text-white/50 text-sm mt-1">Please close developer options or inspection tools to view this document.</p>
+        </div>
+      </div>
+
       <!-- Canvases -->
       <template v-else>
         <div
@@ -73,6 +82,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 
 const props = defineProps({
   noteId:            { type: Number, required: true },
+  userId:            { type: Number, required: true },
   streamUrl:         { type: String, required: true },
   studentEmail:      { type: String, required: true },
   studentRegNo:      { type: String, default: '' },
@@ -85,6 +95,7 @@ const emit = defineEmits(['loaded', 'error'])
 
 const isLoading       = ref(true)
 const loadError       = ref('')
+const isDevToolsOpen  = ref(false)
 const currentPage     = ref(1)
 const totalPages      = ref(0)
 const zoom            = ref(1.0)
@@ -93,6 +104,7 @@ const canvasRefs      = {}
 const openedAt        = ref(Date.now())
 
 let pdfDoc = null
+let devToolsInterval = null
 
 const renderedPages = computed(() => {
   if (!totalPages.value) return []
@@ -103,26 +115,70 @@ function setCanvasRef(el, pageNum) {
   if (el) canvasRefs[pageNum] = el
 }
 
+async function decryptPdfBuffer(encryptedArrayBuffer, sessionToken, userId, noteId) {
+  const secretString = `${sessionToken}:${userId}:${noteId}`
+  const encoder = new TextEncoder()
+  const keyBytes = await window.crypto.subtle.digest('SHA-256', encoder.encode(secretString))
+
+  const cryptoKey = await window.crypto.subtle.importKey(
+    'raw',
+    keyBytes,
+    { name: 'AES-CBC' },
+    false,
+    ['decrypt']
+  )
+
+  const iv = encryptedArrayBuffer.slice(0, 16)
+  const ciphertext = encryptedArrayBuffer.slice(16)
+
+  const decryptedBuffer = await window.crypto.subtle.decrypt(
+    { name: 'AES-CBC', iv: new Uint8Array(iv) },
+    cryptoKey,
+    ciphertext
+  )
+
+  return decryptedBuffer
+}
+
+function checkDevTools() {
+  const threshold = 160
+  const widthDiff = window.outerWidth - window.innerWidth > threshold
+  const heightDiff = window.outerHeight - window.innerHeight > threshold
+  if (widthDiff || heightDiff) {
+    isDevToolsOpen.value = true
+  } else {
+    isDevToolsOpen.value = false
+  }
+}
+
 onMounted(async () => {
   // Auto fit-width on mobile
   if (window.innerWidth < 640) zoom.value = 0.65
   await loadPdf()
   addSecurityListeners()
+  devToolsInterval = setInterval(checkDevTools, 1000)
 })
 
 async function loadPdf() {
   isLoading.value = true
   loadError.value = ''
   try {
+    const sessionToken = localStorage.getItem('skec_session_token') || ''
     const response = await fetch(props.streamUrl, {
       headers: {
         Authorization:    `Bearer ${localStorage.getItem('skec_token')}`,
-        'X-Session-Token': localStorage.getItem('skec_session_token'),
+        'X-Session-Token': sessionToken,
       },
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const arrayBuffer = await response.arrayBuffer()
-    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    const encryptedArrayBuffer = await response.arrayBuffer()
+    const decryptedBuffer = await decryptPdfBuffer(
+      encryptedArrayBuffer,
+      sessionToken,
+      props.userId,
+      props.noteId
+    )
+    pdfDoc = await pdfjsLib.getDocument({ data: decryptedBuffer }).promise
     totalPages.value = pdfDoc.numPages
     emit('loaded', pdfDoc.numPages)
     isLoading.value = false
@@ -224,6 +280,7 @@ function onKeydown(e) {
 function addSecurityListeners() { window.addEventListener('keydown', onKeydown, true) }
 
 onUnmounted(async () => {
+  if (devToolsInterval) clearInterval(devToolsInterval)
   window.removeEventListener('keydown', onKeydown, true)
   const duration = Math.floor((Date.now() - openedAt.value) / 1000)
   try { await notesApi.logAccess(props.noteId, { action: 'closed', duration_seconds: duration }) } catch {}

@@ -17,7 +17,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\Admin\AdministratorController;
 use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\EnsureUserActive;
 use App\Http\Middleware\EnsureValidSession;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +59,7 @@ Route::prefix('v1')->group(function () {
         // Notes (student)
         Route::get('/notes', [NoteController::class, 'index']);
         Route::get('/notes/{id}/stream-token', [NoteController::class, 'getStreamToken']);
+        Route::get('/notes/{id}/stream', [NoteController::class, 'stream'])->name('notes.stream');
         Route::post('/notes/{id}/log', [NoteController::class, 'logAccess']);
         Route::get('student/categories', [CategoryController::class, 'StudentCategories']);
 
@@ -141,9 +144,16 @@ Route::prefix('v1')->group(function () {
             Route::patch('/reviews/{id}/approve', [AdminReviewController::class, 'approve']);
             Route::patch('/reviews/{id}/reject', [AdminReviewController::class, 'reject']);
             Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy']);
+
+            // Administrators (Super Admin only)
+            Route::middleware(EnsureSuperAdmin::class)->group(function () {
+                Route::get('/administrators', [AdministratorController::class, 'index']);
+                Route::post('/administrators', [AdministratorController::class, 'store']);
+                Route::get('/administrators/{id}', [AdministratorController::class, 'show']);
+                Route::patch('/administrators/{id}', [AdministratorController::class, 'update']);
+                Route::delete('/administrators/{id}', [AdministratorController::class, 'destroy']);
+                Route::patch('/administrators/{id}/status', [AdministratorController::class, 'toggleStatus']);
+            });
         });
     });
-
-    // Note stream — uses signed URL
-    Route::get('/notes/{id}/stream', [NoteController::class, 'stream'])->name('notes.stream');
 });

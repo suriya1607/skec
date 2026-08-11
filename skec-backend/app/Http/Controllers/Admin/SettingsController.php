@@ -19,14 +19,14 @@ class SettingsController extends Controller
         return $this->success($this->settingService->getPublicSettings());
     }
 
-    public function index(): JsonResponse
+    public function index(\Illuminate\Http\Request $request): JsonResponse
     {
-        return $this->success($this->settingService->getAllSettings());
+        return $this->success($this->settingService->getAllSettings($request->user()));
     }
 
     public function update(UpdateSettingsRequest $request): JsonResponse
     {
-        $this->settingService->updateSettings($request->input('settings'));
-        return $this->success($this->settingService->getAllSettings(), 'Settings updated');
+        $this->settingService->updateSettings($request->input('settings'), $request->user());
+        return $this->success($this->settingService->getAllSettings($request->user()), 'Settings updated');
     }
 }

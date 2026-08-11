@@ -20,6 +20,7 @@
     <PdfViewer
       v-else-if="streamUrl"
       :note-id="noteId"
+      :user-id="authStore.user?.id || 0"
       :stream-url="streamUrl"
       :student-email="authStore.user?.email || ''"
       :student-reg-no="authStore.user?.profile?.reg_no || ''"
@@ -63,7 +64,7 @@ function handleKeyDown(event) {
     logSecurityEvent('screenshot_attempt')
   }
 
-  if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+  if ((event.ctrlKey || event.metaKey) && ['p', 's', 'u', 'i', 'j', 'c'].includes(event.key?.toLowerCase())) {
     logSecurityEvent('print_attempt')
   }
 }
@@ -96,15 +97,6 @@ onMounted(async () => {
   try {
     const res = await notesApi.streamToken(noteId.value)
     const data = res.data.data
-
-    // If the category has "open in browser" enabled → open in native PDF viewer
-    if (data.open_in_browser) {
-      // Open the PDF in a new browser tab using the signed stream URL
-      window.open(data.stream_url, '_blank')
-      // Navigate student back to notes list (don't leave a blank custom viewer page)
-      router.replace('/notes')
-      return
-    }
 
     streamUrl.value = data.stream_url
 

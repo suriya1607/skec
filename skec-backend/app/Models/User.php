@@ -19,6 +19,7 @@ class User extends Authenticatable implements HasMedia
         'email',
         'password',
         'role',
+        'is_super_admin',
         'status',
         'avatar',
         'last_login_at',
@@ -32,6 +33,7 @@ class User extends Authenticatable implements HasMedia
 
     protected $appends = [
         'photo_url',
+        'is_super_admin',
     ];
 
     protected function casts(): array
@@ -40,7 +42,24 @@ class User extends Authenticatable implements HasMedia
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'is_super_admin' => 'boolean',
         ];
+    }
+
+    // Accessor for is_super_admin
+    public function getIsSuperAdminAttribute(): bool
+    {
+        if (isset($this->attributes['is_super_admin']) && $this->attributes['is_super_admin']) {
+            return true;
+        }
+        if ($this->role === 'super_admin') {
+            return true;
+        }
+        // Fallback: If id is 1 and role is admin, consider primary admin as super admin
+        if ($this->id === 1 && $this->role === 'admin') {
+            return true;
+        }
+        return false;
     }
 
     // Relationships
@@ -92,7 +111,12 @@ class User extends Authenticatable implements HasMedia
     // Helper methods
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']) || $this->is_super_admin;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin;
     }
 
     public function isStudent(): bool
@@ -118,6 +142,11 @@ class User extends Authenticatable implements HasMedia
 
     public function scopeAdmins($query)
     {
-        return $query->where('role', 'admin');
+        return $query->whereIn('role', ['admin', 'super_admin']);
+    }
+
+    public function scopeSuperAdmins($query)
+    {
+        return $query->where(fn($q) => $q->where('role', 'super_admin')->orWhere('is_super_admin', true));
     }
 }

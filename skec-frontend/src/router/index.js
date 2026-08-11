@@ -140,6 +140,12 @@ const router = createRouter({
       component: () => import('../views/admin/ReviewsView.vue'),
       meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin' },
     },
+    {
+      path: '/admin/administrators',
+      name: 'admin.administrators',
+      component: () => import('../views/admin/AdministratorsView.vue'),
+      meta: { layout: 'AdminLayout', requiresAuth: true, role: 'admin', superAdminOnly: true },
+    },
 
     // ── Student ────────────────────────────────────────────────
     {
