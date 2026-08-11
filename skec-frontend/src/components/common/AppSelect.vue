@@ -19,9 +19,9 @@
           : 'border-gray-300 focus:border-primary-500 focus:ring-primary-100',
       ]"
       :style="selectStyle"
-      @change="$emit('update:modelValue', $event.target.value)"
+      @change="handleChange"
     >
-      <option v-if="placeholder" value="">{{ placeholder }}</option>
+      <option v-if="placeholder && !hasEmptyOption" value="">{{ placeholder }}</option>
       <option
         v-for="opt in options"
         :key="opt.value"
@@ -34,17 +34,31 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   modelValue:  { default: '' },
   id:          { type: String,  default: () => `select-${Math.random().toString(36).slice(2)}` },
   label:       { type: String,  default: '' },
   options:     { type: Array,   default: () => [] },
-  placeholder: { type: String,  default: 'Select…' },
+  placeholder: { type: String,  default: '' },
   error:       { type: String,  default: '' },
   disabled:    { type: Boolean, default: false },
   required:    { type: Boolean, default: false },
 })
-defineEmits(['update:modelValue'])
+
+const emit = defineEmits(['update:modelValue', 'change'])
+
+const hasEmptyOption = computed(() =>
+  props.options.some(opt => opt.value === '' || opt.value === null)
+)
+
+function handleChange(event) {
+  const val = event.target.value
+  emit('update:modelValue', val)
+  emit('change', val)
+}
+
 const selectStyle = {
   backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
   backgroundPosition: 'right 0.75rem center',

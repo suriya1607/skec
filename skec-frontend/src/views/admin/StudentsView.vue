@@ -17,13 +17,13 @@
         v-model="statusFilter"
         :options="[{value:'',label:'All Statuses'},{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}]"
         class="w-44"
-        @change="fetchStudents"
+        @change="() => fetchStudents(1)"
       />
       <AppSelect
         v-model="courseFilter"
         :options="courseOptions"
         class="w-52"
-        @change="fetchStudents"
+        @change="() => fetchStudents(1)"
       />
     </div>
 

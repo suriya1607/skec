@@ -28,7 +28,7 @@
             v-model="dateFrom"
             type="date"
             class="input-base text-sm h-10"
-            @change="fetchLogs(1)"
+            @change="() => fetchLogs(1)"
           />
         </div>
 
@@ -39,7 +39,7 @@
             v-model="dateTo"
             type="date"
             class="input-base text-sm h-10"
-            @change="fetchLogs(1)"
+            @change="() => fetchLogs(1)"
           />
         </div>
 
