@@ -12,7 +12,7 @@
 
     <!-- Filters -->
     <div class="card mb-5 flex flex-wrap gap-4">
-      <AppInput v-model="search" placeholder="Search name or email…" class="flex-1 min-w-48" @input="debouncedFetch" />
+      <AppInput v-model="search" placeholder="Search name, registration no., or email…" class="flex-1 min-w-48" @input="debouncedFetch" />
       <AppSelect
         v-model="statusFilter"
         :options="[{value:'',label:'All Statuses'},{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}]"
@@ -46,7 +46,20 @@
           </div>
         </div>
       </template>
-      <template #cell-course="{ row }">{{ row.profile?.course?.name || '—' }}</template>
+      <template #cell-course="{ row }">
+        <div v-if="row.profile?.courses?.length" class="flex flex-wrap gap-1">
+          <span
+            v-for="c in row.profile.courses"
+            :key="c.id"
+            class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+            :style="{ background: (c.color || '#6b7280') + '18', color: c.color || '#6b7280' }"
+          >
+            <span class="w-1.5 h-1.5 rounded-full" :style="{ background: c.color || '#6b7280' }" />
+            {{ c.name }}
+          </span>
+        </div>
+        <span v-else class="text-gray-400">—</span>
+      </template>
       <template #cell-status="{ row }">
         <AppBadge :variant="row.status" :label="row.status" dot />
       </template>

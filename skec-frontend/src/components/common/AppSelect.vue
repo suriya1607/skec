@@ -22,7 +22,12 @@
       @change="$emit('update:modelValue', $event.target.value)"
     >
       <option v-if="placeholder" value="">{{ placeholder }}</option>
-      <option v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+      <option
+        v-for="opt in options"
+        :key="opt.value"
+        :value="String(opt.value)"
+        :selected="String(opt.value) === String(modelValue)"
+      >{{ opt.label }}</option>
     </select>
     <p v-if="error" class="mt-1.5 text-xs text-red-600">{{ error }}</p>
   </div>

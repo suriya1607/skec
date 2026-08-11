@@ -106,7 +106,11 @@ class AnnouncementController extends Controller
 
         if (!empty($categoryIds)) {
             $query->whereHas('profile', function ($q) use ($categoryIds) {
-                $q->whereIn('course_id', $categoryIds);
+                $q->where(function ($inner) use ($categoryIds) {
+                    foreach ($categoryIds as $catId) {
+                        $inner->orWhereRaw('FIND_IN_SET(?, course_id)', [$catId]);
+                    }
+                });
             });
         }
 

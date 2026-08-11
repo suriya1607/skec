@@ -128,14 +128,6 @@
               required
             />
             <AppSelect
-              v-model="form.course_id"
-              label="Course"
-              :options="courseOptions"
-              placeholder="Select course"
-              :error="fieldErrors.course_id"
-              required
-            />
-            <AppSelect
               v-model="form.medium_of_studying"
               label="Medium of Studying"
               :options="mediumOptions"
@@ -143,6 +135,15 @@
               :error="fieldErrors.medium_of_studying"
               required
             />
+            <div class="sm:col-span-2">
+              <AppMultiSelect
+                v-model="form.course_ids"
+                label="Batches"
+                :options="courseOptions"
+                placeholder="Select one or more batches…"
+                :error="fieldErrors.course_ids"
+              />
+            </div>
             <div class="sm:col-span-2">
               <label class="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
               <textarea
@@ -187,7 +188,12 @@
             <div><dt class="text-gray-400">Community Category</dt><dd class="font-medium mt-0.5">{{ profile?.community_category || '—' }}</dd></div>
             <div><dt class="text-gray-400">Contact Phone</dt><dd class="font-medium mt-0.5">{{ profile?.contact_phone || '—' }}</dd></div>
             <div><dt class="text-gray-400">Qualification</dt><dd class="font-medium mt-0.5">{{ profile?.qualification || '—' }}</dd></div>
-            <div><dt class="text-gray-400">Course</dt><dd class="font-medium mt-0.5">{{ profile?.course?.name || '—' }}</dd></div>
+            <div><dt class="text-gray-400">Course / Batch</dt><dd class="font-medium mt-0.5">
+              <template v-if="profileCourses.length">
+                <span v-for="c in profileCourses" :key="c.id" class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full mr-1 mb-1" :style="{ background: (c.color || '#6b7280') + '20', color: c.color || '#6b7280' }">{{ c.name }}</span>
+              </template>
+              <template v-else>—</template>
+            </dd></div>
             <div><dt class="text-gray-400">Medium</dt><dd class="font-medium mt-0.5 capitalize">{{ profile?.medium_of_studying || '—' }}</dd></div>
             <div class="sm:col-span-2"><dt class="text-gray-400">Address</dt><dd class="font-medium mt-0.5">{{ profile?.address || '—' }}</dd></div>
           </dl>
@@ -230,6 +236,7 @@ import AppBadge  from '../../components/common/AppBadge.vue'
 import AppButton from '../../components/common/AppButton.vue'
 import AppInput  from '../../components/common/AppInput.vue'
 import AppSelect from '../../components/common/AppSelect.vue'
+import AppMultiSelect from '../../components/common/AppMultiSelect.vue'
 
 const route   = useRoute()
 const loading = ref(true)
@@ -239,6 +246,7 @@ const error = ref('')
 const success = ref(false)
 const student = ref(null)
 const profile = computed(() => student.value?.profile || null)
+const profileCourses = computed(() => profile.value?.courses || [])
 const courseOptions = ref([])
 const fieldErrors = reactive({})
 
@@ -264,7 +272,7 @@ const form = reactive({
   community_category: '',
   contact_phone: '',
   qualification: '',
-  course_id: '',
+  course_ids: [],
   medium_of_studying: '',
   password: '',
   password_confirmation: '',
@@ -283,7 +291,7 @@ onMounted(async () => {
 
 async function loadCourses() {
   const res = await categoriesApi.list()
-  courseOptions.value = res.data.data.map(c => ({ value: c.id, label: c.name }))
+  courseOptions.value = res.data.data.map(c => ({ value: c.id, label: c.name, color: c.color }))
 }
 
 function fillForm() {
@@ -297,7 +305,10 @@ function fillForm() {
   form.community_category = p?.community_category || ''
   form.contact_phone = p?.contact_phone || ''
   form.qualification = p?.qualification || ''
-  form.course_id = p?.course_id ? String(p.course_id) : ''
+  // Support both single course_id (string) and multiple course_ids
+  form.course_ids = p?.course_ids
+    ? p.course_ids.map(Number)
+    : (p?.course_id ? p.course_id.split(',').map(Number).filter(Boolean) : [])
   form.medium_of_studying = p?.medium_of_studying || ''
 }
 
@@ -315,13 +326,21 @@ async function saveEdit() {
   Object.keys(fieldErrors).forEach(k => delete fieldErrors[k])
 
   const data = new FormData()
-  const editableFields = ['name', 'father_name','reg_no', 'dob', 'gender', 'address', 'community_category', 'contact_phone', 'qualification', 'course_id', 'medium_of_studying', 'password', 'password_confirmation']
+  const editableFields = ['name', 'father_name','reg_no', 'dob', 'gender', 'address', 'community_category', 'contact_phone', 'qualification', 'medium_of_studying', 'password', 'password_confirmation']
   
   Object.entries(form).forEach(([key, value]) => {
     if (!editableFields.includes(key)) return
     if ((key === 'password' || key === 'password_confirmation') && !form.password) return
     data.append(key, value ?? '')
   })
+
+  // Append course_ids as array
+  if (form.course_ids && form.course_ids.length) {
+    form.course_ids.forEach(id => data.append('course_ids[]', id))
+  } else {
+    // If no batches selected, send empty array signal
+    data.append('course_ids', '')
+  }
 
   saving.value = true
 try {

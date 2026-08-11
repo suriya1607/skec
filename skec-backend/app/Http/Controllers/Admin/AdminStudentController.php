@@ -25,11 +25,15 @@ class AdminStudentController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = User::students()->with('profile.course');
+        $query = User::students()->with('profile');
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%"));
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhereHas('profile', fn($pq) => $pq->where('reg_no', 'like', "%{$s}%"));
+            });
         }
 
         if ($request->filled('status')) {
@@ -37,21 +41,32 @@ class AdminStudentController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->whereHas('profile', fn($q) => $q->where('course_id', $request->course_id));
+            $query->whereHas('profile', fn($q) => $q->whereRaw('FIND_IN_SET(?, course_id)', [$request->course_id]));
         }
 
         $students = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Append multi-batch courses to each profile
+        $students->each(function ($student) {
+            if ($student->profile) {
+                $student->profile->courses = $student->profile->getCourses();
+            }
+        });
 
         return $this->paginatedResponse($students);
     }
 
     public function export(Request $request): StreamedResponse
     {
-        $query = User::students()->with('profile.course');
+        $query = User::students()->with('profile');
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%"));
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhereHas('profile', fn($pq) => $pq->where('reg_no', 'like', "%{$s}%"));
+            });
         }
 
         if ($request->filled('status')) {
@@ -59,7 +74,7 @@ class AdminStudentController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->whereHas('profile', fn($q) => $q->where('course_id', $request->course_id));
+            $query->whereHas('profile', fn($q) => $q->whereRaw('FIND_IN_SET(?, course_id)', [$request->course_id]));
         }
 
         $students = $query->orderBy('created_at', 'desc')->get();
@@ -94,7 +109,7 @@ class AdminStudentController extends Controller
                     $student->name,
                     $student->email,
                     $profile?->reg_no ?? '',
-                    $profile?->course?->name ?? '',
+                    $profile ? $profile->getCourses()->pluck('name')->join(', ') : '',
                     $profile?->father_name ?? '',
                     $profile?->dob ? $profile->dob->format('d-m-Y') : '',
                     $profile?->gender ?? '',
@@ -118,10 +133,15 @@ class AdminStudentController extends Controller
     {
         $student = User::students()
             ->with([
-                'profile.course',
+                'profile',
                 'accessLogs' => fn($q) => $q->orderBy('created_at', 'desc')->limit(20),
             ])
             ->findOrFail($id);
+
+        // Append courses array to the profile (multi-batch support)
+        if ($student->profile) {
+            $student->profile->courses = $student->profile->getCourses();
+        }
 
         $activeSessions = $this->sessionService->getActiveSessions($student);
 
@@ -187,6 +207,18 @@ class AdminStudentController extends Controller
         $student->update($userData);
 
 
+        // Handle multiple batch (course_ids array → comma-separated string, same pattern as note categories)
+        $courseIdStr = null;
+        $rawCourseIds = $request->input('course_ids');
+        if ($rawCourseIds !== null) {
+            // Could be an array (from course_ids[]) or an empty string (no batch selected)
+            $ids = is_array($rawCourseIds) ? $rawCourseIds : [];
+            $ids = array_values(array_filter(array_map('intval', $ids)));
+            $courseIdStr = !empty($ids) ? implode(',', $ids) : null;
+        } elseif ($request->filled('course_id')) {
+            $courseIdStr = $request->course_id;
+        }
+
         // update profile table
         $student->profile()->update([
             'father_name' => $request->father_name,
@@ -197,7 +229,7 @@ class AdminStudentController extends Controller
             'community_category' => $request->community_category,
             'contact_phone' => $request->contact_phone,
             'qualification' => $request->qualification,
-            'course_id' => $request->course_id,
+            'course_id' => $courseIdStr,
             'medium_of_studying' => $request->medium_of_studying,
         ]);
         return $this->success(null, 'Student profile updated');

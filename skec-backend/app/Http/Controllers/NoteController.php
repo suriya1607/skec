@@ -24,12 +24,23 @@ class NoteController extends Controller
     {
 
         $isstudent = auth()->user();
-        $student_course_id = $isstudent->profile->course_id;
+        $courseIds = $isstudent->profile?->getCourseIdsArray() ?? [];
 
         $query = Note::with('subject', 'uploader')
-            ->hasCategory($student_course_id)
             ->published()
             ->orderBy('published_at', 'desc');
+
+        // Filter notes that belong to any of the student's enrolled batches
+        if (!empty($courseIds)) {
+            $query->where(function ($q) use ($courseIds) {
+                foreach ($courseIds as $cid) {
+                    $q->orWhereRaw('FIND_IN_SET(?, category_id)', [$cid]);
+                }
+            });
+        } else {
+            // No batch assigned — return empty result
+            $query->whereRaw('0');
+        }
 
         if ($request->has('category_id')) {
             $query->hasCategory($request->category_id);

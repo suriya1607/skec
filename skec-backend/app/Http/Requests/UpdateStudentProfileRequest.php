@@ -33,7 +33,9 @@ class UpdateStudentProfileRequest extends FormRequest
             'community_category' => ['nullable', 'string'],
             'contact_phone' => ['nullable', 'string'],
             'qualification' => ['nullable', 'string'],
-            'course_id' => ['nullable', 'integer'],
+            'course_id' => ['nullable', 'string'],
+            'course_ids' => ['nullable', 'array'],
+            'course_ids.*' => ['integer'],
             'medium_of_studying' => ['nullable', 'in:english,tamil'],
         ];
     }

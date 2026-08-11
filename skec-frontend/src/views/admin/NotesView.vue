@@ -241,10 +241,10 @@ async function fetchNotes(p = 1) {
   try {
     const res = await adminNotesApi.list({
       page: p,
-      search: search.value,
-      status: statusFilter.value,
-      category_id: categoryFilter.value,
-      subject_id: subjectFilter.value,
+      search: search.value || undefined,
+      status: statusFilter.value || undefined,
+      category_id: categoryFilter.value || undefined,
+      subject_id: subjectFilter.value || undefined,
     })
     notes.value = res.data.data
     meta.value  = res.data.meta
@@ -276,11 +276,11 @@ onMounted(async () => {
 
   categoryFilterOptions.value = [
     { value: '', label: 'All Categories' },
-    ...cats.map(c => ({ value: c.id, label: c.name }))
+    ...cats.map(c => ({ value: String(c.id), label: c.name }))
   ]
   subjectFilterOptions.value = [
     { value: '', label: 'All Subjects' },
-    ...subs.map(s => ({ value: s.id, label: s.name }))
+    ...subs.map(s => ({ value: String(s.id), label: s.name }))
   ]
 
   categoryOptions.value = cats.map(c => ({ value: c.id, label: c.name, color: c.color }))

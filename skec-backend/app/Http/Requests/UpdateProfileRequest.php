@@ -45,7 +45,8 @@ class UpdateProfileRequest extends FormRequest
 
         'course_id' => [
             'sometimes',
-            'exists:note_categories,id'
+            'nullable',
+            'string',
         ],
 
         'medium_of_studying' => [

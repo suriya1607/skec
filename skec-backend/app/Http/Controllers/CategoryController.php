@@ -83,25 +83,28 @@ class CategoryController extends Controller
             }
         }
 
-        // ── 3. Delete & deactivate all students enrolled in this batch ──────
-        //    StudentProfile.course_id maps to NoteCategory.id
-        $profiles = \App\Models\StudentProfile::where('course_id', $id)->with('user')->get();
+        // ── 3. Delete & deactivate all students enrolled ONLY in this batch ──────
+        //    Students with multiple batches: just remove this batch from their course_id
+        $profiles = \App\Models\StudentProfile::whereRaw('FIND_IN_SET(?, course_id)', [$id])->with('user')->get();
 
         foreach ($profiles as $profile) {
-            $user = $profile->user;
-            if ($user) {
-                // Revoke all tokens (force logout)
-                $user->tokens()->delete();
-                // Delete sessions
-                $user->userSessions()->delete();
-                // Delete custom notifications
-                \App\Models\Notification::where('user_id', $user->id)->delete();
-                // Delete access logs
-                $user->accessLogs()->delete();
-                // Delete reviews
-                \App\Models\Review::where('user_id', $user->id)->delete();
-                // Delete the student user record (cascades to profile via DB)
-                $user->delete();
+            $ids = $profile->getCourseIdsArray();
+
+            if (count($ids) <= 1) {
+                // Only enrolled in this batch — delete the student
+                $user = $profile->user;
+                if ($user) {
+                    $user->tokens()->delete();
+                    $user->userSessions()->delete();
+                    \App\Models\Notification::where('user_id', $user->id)->delete();
+                    $user->accessLogs()->delete();
+                    \App\Models\Review::where('user_id', $user->id)->delete();
+                    $user->delete();
+                }
+            } else {
+                // Remove this batch from the student's course_id list
+                $remaining = array_filter($ids, fn($i) => $i !== (int)$id);
+                $profile->update(['course_id' => implode(',', $remaining)]);
             }
         }
 
@@ -128,9 +131,14 @@ class CategoryController extends Controller
     public function StudentCategories(): JsonResponse
     {
         $isstudent = auth()->user();
-        $student_course_id = $isstudent->profile->course_id;
+        $courseIds = $isstudent->profile?->getCourseIdsArray() ?? [];
+
+        if (empty($courseIds)) {
+            return $this->success([]);
+        }
+
         $categories = NoteCategory::query()
-            ->where('id', $student_course_id)
+            ->whereIn('id', $courseIds)
             ->orderBy('sort_order')
             ->get()
             ->each(fn($c) => $c->append('notes_count'));

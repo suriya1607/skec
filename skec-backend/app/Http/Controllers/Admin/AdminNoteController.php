@@ -185,7 +185,11 @@ class AdminNoteController extends Controller
         $students = User::students()
             ->active()
             ->whereHas('profile', function ($query) use ($categoryIds) {
-                $query->whereIn('course_id', $categoryIds);
+                $query->where(function ($q) use ($categoryIds) {
+                    foreach ($categoryIds as $catId) {
+                        $q->orWhereRaw('FIND_IN_SET(?, course_id)', [$catId]);
+                    }
+                });
             })
             ->get();
 
