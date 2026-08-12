@@ -415,27 +415,44 @@
     </section>
 
     <!-- ── Achievements ───────────────────────────────────────────── -->
-    <section id="achievements" class="py-20 sm:py-28 bg-primary-700 from-primary-950 to-primary-800 text-white">
+    <section id="achievements" class="py-20 sm:py-28 bg-slate-50 border-y border-slate-200/60">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-10 sm:mb-12">
-          <span class="text-xs font-bold uppercase tracking-widest text-primary-300 mb-3 block">Our Track Record</span>
-          <h2 class="text-3xl sm:text-4xl font-extrabold mb-3">
+        <div class="text-center mb-12 sm:mb-16">
+          <span class="text-xs font-bold uppercase tracking-widest text-primary-600 mb-3 block">Our Track Record</span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3">
             {{ settings.achievements_title || 'Milestones & Achievements' }}
           </h2>
-          <p class="text-white/60 max-w-xl mx-auto text-sm sm:text-base">
+          <p class="text-gray-600 max-w-xl mx-auto text-sm sm:text-base">
             {{ settings.achievements_description || 'Decades of excellence reflected in our students.' }}
           </p>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           <div
             v-for="(ach, i) in achievements"
             :key="i"
-            class="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-colors"
+            class="relative overflow-hidden rounded-2xl p-6 sm:p-7 border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group flex flex-col justify-between"
+            :class="getAchievementStyle(i).card"
           >
-            <div class="text-2xl sm:text-4xl font-extrabold text-primary-200 mb-1 sm:mb-2">{{ ach.metric }}</div>
-            <div class="font-bold text-white text-sm sm:text-base mb-1 sm:mb-2">{{ ach.title }}</div>
-            <div class="text-white/60 text-xs sm:text-sm leading-relaxed hidden sm:block">{{ ach.description }}</div>
+            <!-- Decorative glow effect -->
+            <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-40 blur-2xl transition-opacity group-hover:opacity-70" :class="getAchievementStyle(i).glow"></div>
+
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-3xl sm:text-4xl font-black tracking-tight" :class="getAchievementStyle(i).metric">
+                  {{ ach.metric }}
+                </span>
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" :class="getAchievementStyle(i).iconWrap">
+                  <component :is="getAchievementIcon(i)" class="w-6 h-6" />
+                </div>
+              </div>
+              <h3 class="font-bold text-lg sm:text-xl mb-2" :class="getAchievementStyle(i).title">
+                {{ ach.title }}
+              </h3>
+              <p class="text-sm leading-relaxed" :class="getAchievementStyle(i).desc">
+                {{ ach.description }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -450,20 +467,24 @@
             {{ settings.gallery_title || 'Our Campus & Events' }}
           </h2>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           <div
             v-for="(img, i) in galleryImages"
             :key="i"
-            class="relative group overflow-hidden rounded-xl aspect-square bg-gray-200 cursor-pointer"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col cursor-pointer group hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
             @click="openLightbox(i)"
           >
-            <img
-              :src="img.url"
-              :alt="img.caption || `Photo ${i + 1}`"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div v-if="img.caption" class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <p class="text-white text-xs font-medium">{{ img.caption }}</p>
+            <div class="relative aspect-square bg-gray-100 overflow-hidden">
+              <img
+                :src="img.url"
+                :alt="img.caption || `Photo ${i + 1}`"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div v-if="img.caption" class="p-3.5 sm:p-4 text-center bg-white flex-grow flex items-center justify-center border-t border-gray-100">
+              <p class="font-bold text-gray-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-primary-600 transition-colors">
+                {{ img.caption }}
+              </p>
             </div>
           </div>
         </div>
@@ -475,31 +496,39 @@
       <Transition name="fade">
         <div
           v-if="lightboxIndex !== null"
-          class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          class="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4"
           @click.self="lightboxIndex = null"
         >
           <button
             @click="lightboxIndex = null"
-            class="absolute top-4 right-4 text-white/70 hover:text-white p-2"
+            class="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-10"
           >
             <XMarkIcon class="w-6 h-6" />
           </button>
           <button
             v-if="lightboxIndex > 0"
             @click="lightboxIndex--"
-            class="absolute left-4 text-white/70 hover:text-white p-2"
+            class="absolute left-4 text-white/70 hover:text-white p-2 z-10"
           >
             <ChevronLeftIcon class="w-7 h-7" />
           </button>
-          <img
-            v-if="galleryImages[lightboxIndex]"
-            :src="galleryImages[lightboxIndex].url"
-            class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
-          />
+          <div class="max-w-4xl max-h-[85vh] flex flex-col items-center justify-center gap-3">
+            <img
+              v-if="galleryImages[lightboxIndex]"
+              :src="galleryImages[lightboxIndex].url"
+              class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl"
+            />
+            <div
+              v-if="galleryImages[lightboxIndex]?.caption"
+              class="text-white text-center font-bold text-sm sm:text-base bg-black/60 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/10 max-w-xl"
+            >
+              {{ galleryImages[lightboxIndex].caption }}
+            </div>
+          </div>
           <button
             v-if="lightboxIndex < galleryImages.length - 1"
             @click="lightboxIndex++"
-            class="absolute right-4 text-white/70 hover:text-white p-2"
+            class="absolute right-4 text-white/70 hover:text-white p-2 z-10"
           >
             <ChevronRightIcon class="w-7 h-7" />
           </button>
@@ -838,6 +867,74 @@ const achievements = computed(() => {
     { metric: '15+',  title: 'Subject Specialists',   description: 'Dedicated experts in every subject.' },
   ]
 })
+
+const achievementStyles = [
+  {
+    card: 'bg-gradient-to-br from-blue-100/90 via-blue-50 to-sky-100/70 border-blue-200 shadow-sm hover:border-blue-300',
+    metric: 'text-blue-700',
+    title: 'text-blue-950',
+    desc: 'text-blue-800/90',
+    iconWrap: 'bg-blue-600 text-white',
+    glow: 'bg-blue-400',
+  },
+  {
+    card: 'bg-gradient-to-br from-amber-100/90 via-amber-50 to-orange-100/70 border-amber-200 shadow-sm hover:border-amber-300',
+    metric: 'text-amber-700',
+    title: 'text-amber-950',
+    desc: 'text-amber-800/90',
+    iconWrap: 'bg-amber-600 text-white',
+    glow: 'bg-amber-400',
+  },
+  {
+    card: 'bg-gradient-to-br from-emerald-100/90 via-emerald-50 to-teal-100/70 border-emerald-200 shadow-sm hover:border-emerald-300',
+    metric: 'text-emerald-700',
+    title: 'text-emerald-950',
+    desc: 'text-emerald-800/90',
+    iconWrap: 'bg-emerald-600 text-white',
+    glow: 'bg-emerald-400',
+  },
+  {
+    card: 'bg-gradient-to-br from-purple-100/90 via-purple-50 to-violet-100/70 border-purple-200 shadow-sm hover:border-purple-300',
+    metric: 'text-purple-700',
+    title: 'text-purple-950',
+    desc: 'text-purple-800/90',
+    iconWrap: 'bg-purple-600 text-white',
+    glow: 'bg-purple-400',
+  },
+  {
+    card: 'bg-gradient-to-br from-rose-100/90 via-rose-50 to-pink-100/70 border-rose-200 shadow-sm hover:border-rose-300',
+    metric: 'text-rose-700',
+    title: 'text-rose-950',
+    desc: 'text-rose-800/90',
+    iconWrap: 'bg-rose-600 text-white',
+    glow: 'bg-rose-400',
+  },
+  {
+    card: 'bg-gradient-to-br from-cyan-100/90 via-cyan-50 to-teal-100/70 border-cyan-200 shadow-sm hover:border-cyan-300',
+    metric: 'text-cyan-700',
+    title: 'text-cyan-950',
+    desc: 'text-cyan-800/90',
+    iconWrap: 'bg-cyan-600 text-white',
+    glow: 'bg-cyan-400',
+  },
+]
+
+function getAchievementStyle(index) {
+  return achievementStyles[index % achievementStyles.length]
+}
+
+const achievementIcons = [
+  TrophyIcon,
+  AcademicCapIcon,
+  UsersIcon,
+  StarIcon,
+  CheckCircleIcon,
+  BookOpenIcon,
+]
+
+function getAchievementIcon(index) {
+  return achievementIcons[index % achievementIcons.length]
+}
 
 const galleryEnabled = computed(() => {
   const v = settings.value.gallery_enabled
