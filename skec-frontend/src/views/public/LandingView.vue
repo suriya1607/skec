@@ -2,169 +2,183 @@
   <div class="min-h-screen bg-white" style="font-family: 'Outfit', 'Inter', sans-serif;">
 
     <!-- ── Sticky Navbar ───────────────────────────────────────── -->
-    <nav
-      class="fixed top-0 inset-x-0 z-50 transition-all duration-300"
-      :class="scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-transparent'"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <!-- Logo / Brand -->
+    <nav class="fixed top-0 inset-x-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-24 flex items-center justify-between gap-4">
+        <!-- Logo / Brand (No institute name text in header, logo clear & bigger) -->
         <RouterLink to="/" class="flex items-center gap-3 flex-shrink-0">
           <img
             v-if="settings.app_logo"
             :src="settings.app_logo"
             :alt="settings.app_name || 'SKEC'"
-            class="h-9 w-auto object-contain"
+            class="h-12 sm:h-16 w-auto max-h-16 object-contain"
           />
           <div
             v-else
-            class="w-9 h-9 bg-primary-900 rounded-xl flex items-center justify-center"
+            class="w-12 h-12 sm:w-14 sm:h-14 bg-primary-900 rounded-xl flex items-center justify-center shadow-sm"
           >
-            <span class="text-white font-bold text-sm">SK</span>
+            <span class="text-white font-black text-lg sm:text-xl">SK</span>
           </div>
-          <span
-            class="font-bold text-sm hidden sm:block"
-            :class="scrolled ? 'text-primary-900' : 'text-white'"
-          >
-            {{ settings.app_name || 'Sri Kumaran Education Centre' }}
-          </span>
         </RouterLink>
 
-        <!-- Desktop nav links -->
-        <div class="hidden sm:flex items-center gap-1">
+        <!-- Desktop nav links (spanning entire space between logo and student login, extra BIG) -->
+        <div class="hidden md:flex items-center justify-evenly flex-1 mx-3 lg:mx-6">
           <a
             v-for="link in navLinks"
             :key="link.label"
             :href="link.href"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >{{ link.label }}</a>
           <RouterLink
             to="/free-notes"
-            :class="scrolled ? 'text-green-700 hover:text-green-800' : 'text-green-300 hover:text-white'"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+            class="px-4.5 py-2.5 text-lg lg:text-xl font-black bg-green-600 border-2 border-green-700 text-white hover:bg-green-700 rounded-xl transition-all shadow-md shadow-green-600/20 active:scale-95"
           >Free Notes</RouterLink>
           <RouterLink
             to="/contact"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >Contact</RouterLink>
           <RouterLink
             to="/register"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg hover:bg-white/10"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >Register</RouterLink>
         </div>
 
         <!-- CTA + mobile menu -->
         <div class="flex items-center gap-2">
+          <!-- Student Login ONLY is Red (BIGGER size) -->
           <RouterLink
             to="/login"
-            class="px-4 py-2 rounded-xl text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 transition shadow-sm"
+            class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-base sm:text-lg lg:text-xl font-black bg-red-600 text-white hover:bg-red-700 transition shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/35 transform hover:-translate-y-0.5 active:translate-y-0"
           >
             Student Login
           </RouterLink>
           <button
-            class="sm:hidden p-2 rounded-lg"
-            :class="scrolled ? 'hover:bg-gray-100' : 'hover:bg-white/20'"
+            class="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition"
             @click="mobileNavOpen = !mobileNavOpen"
           >
-            <XMarkIcon v-if="mobileNavOpen" class="w-5 h-5" :class="scrolled ? 'text-gray-700' : 'text-white'" />
-            <Bars3Icon v-else              class="w-5 h-5" :class="scrolled ? 'text-gray-700' : 'text-white'" />
+            <XMarkIcon v-if="mobileNavOpen" class="w-7 h-7 text-gray-800" />
+            <Bars3Icon v-else              class="w-7 h-7 text-gray-800" />
           </button>
         </div>
       </div>
 
       <!-- Mobile nav -->
       <Transition name="menu">
-        <div v-if="mobileNavOpen" class="sm:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1 shadow-lg">
+        <div v-if="mobileNavOpen" class="md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-2 shadow-lg">
           <a
             v-for="link in navLinks"
             :key="link.label"
             :href="link.href"
             @click="mobileNavOpen = false"
-            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+            class="block px-4 py-3 rounded-xl text-lg font-black text-blue-950 hover:bg-primary-50 hover:text-primary-700"
           >{{ link.label }}</a>
           <RouterLink
             to="/free-notes"
             @click="mobileNavOpen = false"
-            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-green-700 hover:bg-green-50"
+            class="block px-4 py-3 rounded-xl text-lg font-black bg-green-600 border border-green-700 text-white text-center shadow-sm"
           >Free Notes</RouterLink>
           <RouterLink
             to="/contact"
             @click="mobileNavOpen = false"
-            class="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+            class="block px-4 py-3 rounded-xl text-lg font-black text-blue-950 hover:bg-primary-50 hover:text-primary-700"
           >Contact</RouterLink>
+          <RouterLink
+            to="/register"
+            @click="mobileNavOpen = false"
+            class="block px-4 py-3 rounded-xl text-lg font-black text-blue-950 hover:bg-primary-50 hover:text-primary-700"
+          >Register</RouterLink>
+          <div class="pt-2 border-t border-gray-100">
+            <RouterLink
+              to="/login"
+              @click="mobileNavOpen = false"
+              class="block w-full text-center px-5 py-3 rounded-xl text-lg font-black bg-red-600 text-white hover:bg-red-700 transition shadow-md shadow-red-500/25"
+            >
+              Student Login
+            </RouterLink>
+          </div>
         </div>
       </Transition>
     </nav>
 
 
     <!-- ── HERO (Banner OR Default) ───────────────────────── -->
-      <section class="relative min-h-screen flex items-center overflow-hidden">
+    <section class="relative overflow-hidden bg-gray-950 pt-16 sm:pt-20">
 
-        <!-- If banner image exists -->
-        <template v-if="settings.hero_image">
-          <div class="absolute inset-0">
-            <img
-              :src="settings.hero_image"
-              class="w-full h-full object-cover"
-            />
-            <div class="absolute inset-0 bg-black/50" />
+      <!-- If banner image exists: image drives its own height (natural aspect ratio, zero black bars, zero crop) -->
+      <template v-if="settings.hero_image">
+        <!-- Invisible img sets the section height (renders after pt-16/pt-20 padding) -->
+        <img
+          :src="settings.hero_image"
+          class="w-full block"
+          alt=""
+          aria-hidden="true"
+        />
+        <!-- Visible image starts exactly at bottom of navbar (top-16 sm:top-20), zero gap -->
+        <div class="absolute inset-x-0 bottom-0 top-16 sm:top-20">
+          <img
+            :src="settings.hero_image"
+            class="w-full h-full object-cover"
+            alt="Banner"
+          />
+          <div class="absolute inset-0 bg-black/45" />
+        </div>
+      </template>
+
+      <!-- Else use DEFAULT design -->
+      <template v-else>
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-950 via-primary-800 to-primary-600">
+          <!-- Background pattern -->
+          <div class="absolute inset-0 opacity-10" aria-hidden="true">
+            <svg width="100%" height="100%">
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+              </pattern>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+            </svg>
           </div>
-        </template>
+          <div class="absolute top-1/4 -left-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
+          <div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-primary-300/20 rounded-full blur-3xl" />
+        </div>
 
-        <!--  Else use your DEFAULT design -->
-        <template v-else>
-          <div class="absolute inset-0 bg-primary-600 from-primary-950 via-primary-800 to-primary-600">
+        <!-- Default fallback height when no banner image -->
+        <div class="min-h-[500px] lg:min-h-[650px]" />
+      </template>
 
-            <!-- Background pattern -->
-            <div class="absolute inset-0 opacity-10" aria-hidden="true">
-              <svg width="100%" height="100%">
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
-                </pattern>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-              </svg>
-            </div>
-
-            <!-- Glow blobs -->
-            <div class="absolute top-1/4 -left-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
-            <div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-primary-300/20 rounded-full blur-3xl" />
-
-          </div>
-        </template>
-
-        <!-- COMMON CONTENT (always same) -->
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 text-white">
+      <!-- COMMON CONTENT — aligned to top of hero section -->
+      <div class="absolute inset-0 z-10 flex items-start pt-20 sm:pt-24 lg:pt-28">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 text-white">
           <div class="max-w-3xl">
 
-            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-              <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              {{ settings.hero_badge || 'Admissions Open — Batch 2025' }}
+            <!-- Institute Name -->
+            <h1 class="text-3xl sm:text-4xl lg:text-4xl font-black text-yellow-400 tracking-wide uppercase mb-6 leading-tight [text-shadow:_0_4px_12px_rgba(239,68,68,0.95),_0_-4px_12px_rgba(59,130,246,0.85),_4px_0_12px_rgba(34,197,94,0.75)]">
+              {{ settings.app_name || 'Sri Kumaran Education Centre' }}
+            </h1>
+
+            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium mb-5 shadow-sm">
+              <span class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
+              {{ settings.hero_badge || 'Admissions Open — Batch 2026' }}
             </div>
 
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 tracking-tight">
+            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-5 tracking-tight drop-shadow-md">
               {{ settings.hero_title || 'Shaping Futures Through' }}
               <span class="block text-primary-200">
                 {{ settings.hero_subtitle || 'Excellence in Education' }}
               </span>
-            </h1>
+            </h2>
 
-            <p class="text-lg sm:text-xl text-white/75 mb-10 max-w-xl leading-relaxed">
-              {{ settings.hero_description || 'Sri Kumaran Education Centre — nurturing academic excellence.' }}
+            <p class="text-base sm:text-lg text-white/90 mb-8 max-w-xl leading-relaxed drop-shadow-sm font-medium">
+              {{ settings.hero_description || 'Sri Kumaran Education Centre — nurturing academic excellence, character, and lifelong learning for every student.' }}
             </p>
 
             <div class="flex flex-wrap gap-4">
               <RouterLink
                 to="/login"
-                class="px-6 py-3.5 rounded-xl bg-white text-primary-900 font-bold text-sm hover:bg-primary-50 transition shadow-lg"
+                class="px-6 py-3.5 rounded-xl bg-white text-primary-900 font-bold text-sm hover:bg-primary-50 transition shadow-lg hover:scale-105 active:scale-95"
               >
                 Access Learning Portal →
               </RouterLink>
-
               <a
                 href="#about"
-                class="px-6 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold text-sm hover:bg-white/20 transition"
+                class="px-6 py-3.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/30 text-white font-semibold text-sm hover:bg-white/20 transition shadow-md"
               >
                 Learn More
               </a>
@@ -172,13 +186,14 @@
 
           </div>
         </div>
+      </div>
 
-        <!-- Scroll indicator -->
-        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 animate-bounce" @click="scrollToNext">
-          <ChevronDownIcon class="w-6 h-6" />
-        </div>
+      <!-- Scroll indicator -->
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 animate-bounce z-10" @click="scrollToNext">
+        <ChevronDownIcon class="w-6 h-6" />
+      </div>
 
-      </section>
+    </section>
 
     <!-- ── Stats Bar ─────────────────────────────────────────────── -->
     <section id="ranking" class="bg-white border-b border-gray-100 scroll-mt-20">
@@ -377,7 +392,7 @@
               {{ batch.desc }}
             </p>
             <div class="text-xs font-semibold" :class="batch.featured ? 'text-primary-200' : 'text-primary-700'">
-              {{ batch.seats }} seats enrolled
+              {{ batch.seats }} students enrolled
             </div>
           </div>
         </div>

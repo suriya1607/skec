@@ -1,52 +1,56 @@
 <template>
   <div class="min-h-screen bg-white" style="font-family: 'Outfit', 'Inter', sans-serif;">
 
-    <!-- ── Sticky Navbar (same as LandingView) ───────────────────────── -->
-    <nav
-      class="fixed top-0 inset-x-0 z-50 transition-all duration-300"
-      :class="scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-transparent'"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <!-- ── Sticky Navbar ───────────────────────── -->
+    <nav class="fixed top-0 inset-x-0 z-50 bg-white shadow-md border-b border-gray-100 transition-all duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-24 flex items-center justify-between gap-4">
         <RouterLink to="/" class="flex items-center gap-3 flex-shrink-0">
           <img
             v-if="settings.app_logo"
             :src="settings.app_logo"
             :alt="settings.app_name || 'SKEC'"
-            class="h-9 w-auto object-contain"
+            class="h-12 sm:h-16 w-auto max-h-16 object-contain"
           />
-          <div v-else class="w-9 h-9 bg-primary-900 rounded-xl flex items-center justify-center">
-            <span class="text-white font-bold text-sm">SK</span>
+          <div v-else class="w-12 h-12 sm:w-14 sm:h-14 bg-primary-900 rounded-xl flex items-center justify-center shadow-sm">
+            <span class="text-white font-black text-lg sm:text-xl">SK</span>
           </div>
-          <span
-            class="font-bold text-sm hidden sm:block"
-            :class="scrolled ? 'text-primary-900' : 'text-white'"
-          >
-            {{ settings.app_name || 'Sri Kumaran Education Centre' }}
-          </span>
         </RouterLink>
 
-        <div class="hidden sm:flex items-center gap-1">
+        <div class="hidden md:flex items-center justify-evenly flex-1 mx-3 lg:mx-6">
           <RouterLink
             to="/"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >Home</RouterLink>
           <a
             href="/#about"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >About</a>
           <a
             href="/#batch"
-            class="px-3 py-2 text-sm font-medium transition-colors rounded-lg"
-            :class="scrolled ? 'text-gray-600 hover:text-primary-700' : 'text-white/80 hover:text-white'"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
           >Batch</a>
+          <a
+            href="/#achievements"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
+          >Achievements</a>
+          <a
+            href="/#gallery"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 hover:text-primary-700 hover:bg-primary-50/60 rounded-xl transition-colors"
+          >Gallery</a>
+          <RouterLink
+            to="/free-notes"
+            class="px-4.5 py-2.5 text-lg lg:text-xl font-black bg-green-600 border-2 border-green-700 text-white hover:bg-green-700 rounded-xl transition-all shadow-md shadow-green-600/20 active:scale-95"
+          >Free Notes</RouterLink>
+          <RouterLink
+            to="/contact"
+            class="px-3.5 py-2.5 text-lg lg:text-xl font-black text-blue-950 bg-primary-50 rounded-xl transition-colors"
+          >Contact</RouterLink>
         </div>
 
         <div class="flex items-center gap-2">
           <RouterLink
             to="/login"
-            class="px-4 py-2 rounded-xl text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 transition shadow-sm"
+            class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-base sm:text-lg lg:text-xl font-black bg-red-600 text-white hover:bg-red-700 transition shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/35 transform hover:-translate-y-0.5 active:translate-y-0"
           >
             Student Login
           </RouterLink>

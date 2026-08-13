@@ -32,7 +32,7 @@
           <!-- Login CTA -->
           <RouterLink
             to="/login"
-            class="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-700 text-white hover:bg-primary-800 transition shadow-sm"
+            class="flex-shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition shadow-sm shadow-red-500/20 active:scale-95"
           >
             Student Login
           </RouterLink>
